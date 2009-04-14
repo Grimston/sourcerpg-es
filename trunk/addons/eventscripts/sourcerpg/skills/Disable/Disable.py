@@ -13,9 +13,9 @@ config.addInfo(skillName, """This skill allows a player to force their victims t
 weapon when hit.""")
 
 """ Assign all the server variables """
-maxLevel        = config.cvar("srpg_disableMax",                5, "The maximum level of this skill")
-creditStart     = config.cvar("srpg_disableCreditsStart",      20, "The starting amount of credits for this skill")
-creditIncrement = config.cvar("srpg_disableCreditsIncrement",  25, "How much the credits increment after the first level")
+maxLevel        = config.cvar("srpg_disableMax",               10, "The maximum level of this skill")
+creditStart     = config.cvar("srpg_disableCreditsStart",      15, "The starting amount of credits for this skill")
+creditIncrement = config.cvar("srpg_disableCreditsIncrement",  10, "How much the credits increment after the first level")
 percentage      = config.cvar("srpg_disablePercentage",         2, "The percentage multiplied by the attackers level each bullet has of disabling their victim")
 
 def load():

@@ -15,9 +15,9 @@ config.addInfo(skillName, """This skill allows a player to slow down their victi
 damaging them with a secondary weapon.""")
 
 """ Assign all the server variables """
-maxLevel        = config.cvar("srpg_frostPistolMax",                5, "The maximum level of this skill")
+maxLevel        = config.cvar("srpg_frostPistolMax",               10, "The maximum level of this skill")
 creditStart     = config.cvar("srpg_frostPistolCreditsStart",      20, "The starting amount of credits for this skill")
-creditIncrement = config.cvar("srpg_frostPistolCreditsIncrement",  25, "How much the credits increment after the first level")
+creditIncrement = config.cvar("srpg_frostPistolCreditsIncrement",  15, "How much the credits increment after the first level")
 freezeTime      = config.cvar("srpg_frostPistolFreezeTime",       0.1, "The amount of time to freeze a player by multiplied by the attackers level")
 
 def load():

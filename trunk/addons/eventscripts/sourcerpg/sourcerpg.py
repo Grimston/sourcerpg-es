@@ -1,7 +1,7 @@
 # FOR NOTES CTRL + F ~NOTE
 
 # ~NOTE: TODO
-#   Finish of all the skills
+#   Finish of all the skills (X)
 #   Make admin menu (X)
 #   Make addon manager / object classes (X)
 #   Make converter

@@ -15,8 +15,8 @@ increasingly difficult to be seen""")
 
 """ Assign all the server variables """
 maxLevel        = config.cvar("srpg_stealthMax",                5, "The maximum level of this skill")
-creditStart     = config.cvar("srpg_stealthCreditsStart",      20, "The starting amount of credits for this skill")
-creditIncrement = config.cvar("srpg_stealthCreditsIncrement",  25, "How much the credits increment after the first level")
+creditStart     = config.cvar("srpg_stealthCreditsStart",      15, "The starting amount of credits for this skill")
+creditIncrement = config.cvar("srpg_stealthCreditsIncrement",  10, "How much the credits increment after the first level")
 minStealth      = config.cvar("srpg_minimumStealthPercentage", 20, "The minimum percentage of stealth a player receives at the maximum level")
 
 def load():

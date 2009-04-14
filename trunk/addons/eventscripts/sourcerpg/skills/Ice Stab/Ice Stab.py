@@ -16,9 +16,9 @@ config.addInfo(skillName, """This skill allows a player to freeze another player
 stabbing them with a knife""")
 
 """ Assign all the server variables """
-maxLevel        = config.cvar("srpg_iceStabMax",                 5, "The maximum level of this skill")
+maxLevel        = config.cvar("srpg_iceStabMax",                 3, "The maximum level of this skill")
 creditStart     = config.cvar("srpg_iceStabCreditsStart",       20, "The starting amount of credits for this skill")
-creditIncrement = config.cvar("srpg_iceStabCreditsIncrement",   25, "How much the credits increment after the first level")
+creditIncrement = config.cvar("srpg_iceStabCreditsIncrement",   30, "How much the credits increment after the first level")
 iceTime         = config.cvar("srpg_iceStabFreezeTime",          1, "The amount of time to freeze a player multiplied by the attacker's level")
 damageReduction = config.cvar("srpg_damageReductionPercentage", 50, "The percentage that the amount of damage is reduced by when the victim is frozen")
 

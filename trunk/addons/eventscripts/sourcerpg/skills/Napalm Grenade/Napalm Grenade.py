@@ -14,9 +14,9 @@ config.addInfo(skillName, """This skill allows a player to set others on fire wh
 damage them with a HE grenade. The length of time is 1 second per level.""")
 
 """ Assign all the server variables """
-maxLevel        = config.cvar("srpg_napalmMax",               5, "The maximum level of this skill")
-creditStart     = config.cvar("srpg_napalmCreditsStart",     20, "The starting amount of credits for this skill")
-creditIncrement = config.cvar("srpg_napalmCreditsIncrement", 25, "How much the credits increment after the first level")
+maxLevel        = config.cvar("srpg_napalmMax",              10, "The maximum level of this skill")
+creditStart     = config.cvar("srpg_napalmCreditsStart",     10, "The starting amount of credits for this skill")
+creditIncrement = config.cvar("srpg_napalmCreditsIncrement", 10, "How much the credits increment after the first level")
 
 def load():
     """ 

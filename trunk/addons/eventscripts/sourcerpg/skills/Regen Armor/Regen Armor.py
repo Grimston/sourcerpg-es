@@ -13,7 +13,7 @@ config.addInfo(skillName, """This skill allows a player to regenerate a certain 
 so often until their maximum armor is reached.""")
 
 """ Assign all the server variables """
-maxLevel        = config.cvar("srpg_regenArmorMax",               5, "The maximum level of the regen skill")
+maxLevel        = config.cvar("srpg_regenArmorMax",              10, "The maximum level of the regen skill")
 creditStart     = config.cvar("srpg_regenArmorCreditsStart",      5, "The starting amount of credits for this skill")
 creditIncrement = config.cvar("srpg_regenArmorCreditsIncrement", 10, "How much the credits increment after the first level")
 regenDelay      = config.cvar("srpg_regenArmorDelayTimer",      1.0, "The time (in seconds) between each time a user's regen power adds more armor") 

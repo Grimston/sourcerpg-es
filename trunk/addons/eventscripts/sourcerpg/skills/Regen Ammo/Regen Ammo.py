@@ -14,10 +14,10 @@ config.addInfo(skillName, """This skill allows a player to regenerate ammo for t
 and secondary weapons every so often until their maximum ammo is reached.""")
 
 """ Assign all the server variables """
-maxLevel        = config.cvar("srpg_regenAmmoMax",               5, "The maximum level of this skill")
-creditStart     = config.cvar("srpg_regenAmmoCreditsStart",      5, "The starting amount of credits for this skill")
+maxLevel        = config.cvar("srpg_regenAmmoMax",              10, "The maximum level of this skill")
+creditStart     = config.cvar("srpg_regenAmmoCreditsStart",     15, "The starting amount of credits for this skill")
 creditIncrement = config.cvar("srpg_regenAmmoCreditsIncrement", 10, "How much the credits increment after the first level")
-regenDelay      = config.cvar("srpg_regenAmmoDelayTimer",      1.0, "The time (in seconds) between each time a user's regen power increments their ammo") 
+regenDelay      = config.cvar("srpg_regenAmmoDelayTimer",      3.0, "The time (in seconds) between each time a user's regen power increments their ammo")
 
 class RegenAmmoManager(object):
     """

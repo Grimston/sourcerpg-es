@@ -14,7 +14,7 @@ until their health / armor is full.""")
 
 """ Assign all the server variables """
 maxLevel        = config.cvar("srpg_medicMax",                5, "The maximum level of the skill")
-creditStart     = config.cvar("srpg_medicCreditsStart",      20, "The starting amount of credits for this skill")
+creditStart     = config.cvar("srpg_medicCreditsStart",      25, "The starting amount of credits for this skill")
 creditIncrement = config.cvar("srpg_medicCreditsIncrement",  15, "How much the credits increment after the first level")
 effects         = config.cvar("srpg_medicEffects",            1, "Whether or not the skill creates a beam around the player (requires EST)")
 minDistance     = config.cvar('srpg_medicMinDistance',      300, "The radius of the healing effect at level 1")

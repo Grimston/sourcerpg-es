@@ -14,8 +14,8 @@ config.addInfo(skillName, """This skill allows a player to set recover their wea
 they die. These are static levels so that's why the maximum level is not configurable.""")
 
 """ Assign all the server variables """
-creditStart     = config.cvar("srpg_recoverWeaponsCreditsStart",     20, "The starting amount of credits for this skill")
-creditIncrement = config.cvar("srpg_recoverWeaponsCreditsIncrement", 25, "How much the credits increment after the first level")
+creditStart     = config.cvar("srpg_recoverWeaponsCreditsStart",     25, "The starting amount of credits for this skill")
+creditIncrement = config.cvar("srpg_recoverWeaponsCreditsIncrement", 50, "How much the credits increment after the first level")
 
 def load():
     """

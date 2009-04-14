@@ -17,7 +17,7 @@ to be poisionous.""")
 """ Assign all the server variables """
 maxLevel        = config.cvar("srpg_smogMax",               5, "The maximum level of this skill")
 creditStart     = config.cvar("srpg_smogCreditsStart",     20, "The starting amount of credits for this skill")
-creditIncrement = config.cvar("srpg_smogCreditsIncrement", 25, "How much the credits increment after the first level")
+creditIncrement = config.cvar("srpg_smogCreditsIncrement", 20, "How much the credits increment after the first level")
 damagePerLevel  = config.cvar("srpg_smogDamagePerLevel",    2, "How much damage per second each level the smog cloud does to others")
 
 class SmokeGrenadeManager(object):

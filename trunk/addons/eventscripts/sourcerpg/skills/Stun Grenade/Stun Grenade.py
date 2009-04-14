@@ -15,8 +15,8 @@ screen shake when hit with a flashbang.""")
 
 """ Assign all the server variables """
 maxLevel        = config.cvar("srpg_stunNadeMax",                 5, "The maximum level of this skill")
-creditStart     = config.cvar("srpg_stunNadeCreditsStart",       20, "The starting amount of credits for this skill")
-creditIncrement = config.cvar("srpg_stunNadeCreditsIncrement",   25, "How much the credits increment after the first level")
+creditStart     = config.cvar("srpg_stunNadeCreditsStart",       30, "The starting amount of credits for this skill")
+creditIncrement = config.cvar("srpg_stunNadeCreditsIncrement",   20, "How much the credits increment after the first level")
 removeFlash     = config.cvar("srpg_stunNadeRemoveFlash",         0, "Whether or not the normal flash bang effect is removed on this server")
 
 def load():
