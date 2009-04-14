@@ -38,11 +38,12 @@ def player_spawn(event_var):
     
     @PARAM event_var - an automatically passed event instance
     """
-    if not es.getplayeprop(ev['userid'], 'CBasePlayer.pl.deadflag'):
+    if not es.getplayerprop(event_var['userid'], 'CBasePlayer.pl.deadflag'):
         userid = event_var['userid']
         player = sourcerpg.players[userid]
-        if player[skillName]:
-            gamethread.delayed(0, setSpeed, userid)
+        if player is not None:
+            if player[skillName]:
+                gamethread.delayed(0, setSpeed, userid)
         
 def sourcerpg_skillupgrade(event_var):
     """
@@ -74,7 +75,7 @@ def setSpeed(userid):
     player = sourcerpg.players[userid]
     level  = player[skillName]
     if level:
-        eachSegment = float(speedMaximum) - 1.0 / maxLevel
-        level = level * eachSegement + player['maxSpeed']
+        eachSegment = float(maxSpeed) - 1.0 / maxLevel
+        level = level * eachSegment + player['maxSpeed']
         player['maxSpeed'] = level
         es.setplayerprop(userid, 'CBasePlayer.localdata.m_flLaggedMovementValue', level)

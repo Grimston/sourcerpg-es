@@ -94,7 +94,7 @@ class SmokeGrenadeManager(object):
         """
         Start the repeat and ensure we are checking every second indefinitely
         """
-        self.repeat.start(1)
+        self.repeat.start(1, 0)
 
     def check(self):
         """

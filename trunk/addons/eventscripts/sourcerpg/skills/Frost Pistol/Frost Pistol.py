@@ -88,7 +88,9 @@ def player_spawn(event_var):
     """
     userid = event_var['userid']
     if not es.getplayerprop(userid, 'CBasePlayer.pl.deadflag'):
-        sourcerpg.players[userid]['slowed'] = False
+        player = sourcerpg.players[userid]
+        if player is not None:
+            player['slowed'] = False
                 
 def player_death(event_var):
     """

@@ -305,6 +305,7 @@ class SQLiteManager(object):
         @PARAM steamid - the string value of a players steamid
         @PARAM name - the string value of a players name
         """
+        name = str(name).replace("'", "''")
         if not self.__contains__(steamid):
             self.cursor.execute("INSERT OR IGNORE INTO playerstats (steamid, popup, credits, name) VALUES ('" + "', '".join( ( str( steamid ), str(popupStatus), str(startCredits), name)) + "')")
             self.cursor.execute("SELECT rowid FROM skills")
@@ -320,9 +321,10 @@ class SQLiteManager(object):
         
         @PARAM skillName - the string name of the skill
         """
-        self.cursor.execute("SELECT rowid FROM skills WHERE name='" + str(skillName) + "'")
+        convertedSkillName = str(skillName).replace("'", "''")
+        self.cursor.execute("SELECT rowid FROM skills WHERE name='" + convertedSkillName + "'")
         if not bool(self.cursor.fetchone()):
-            self.cursor.execute("INSERT INTO skills (name) VALUES ('" + str(skillName) + "')")
+            self.cursor.execute("INSERT INTO skills (name) VALUES ('" + convertedSkillName + "')")
         self.skills.append(skillName)
             
     def addSkillIntoPlayerDatabase(self, steamid, rowId, level):
@@ -353,8 +355,9 @@ class SQLiteManager(object):
         @PARAM skillName - the string name of the skill to check
         @RETURN boolean - whether or not the skill exists for the player
         """
+        convertedSkillName = str(skillName).replace("'", "''")
         self.cursor.execute("SELECT level FROM playerskills WHERE Steamid=\"" + 
-                            str(steamid) + "\" AND name=\"" + str(skillName) +"\"")
+                            str(steamid) + "\" AND name=\"" + str(convertedSkillName) +"\"")
         return bool( self.fetchone() )
             
     def removeSkill(self, skillName):
@@ -374,6 +377,7 @@ class SQLiteManager(object):
         @PARAM statType - the column name of the value you wish to return
         @RETURN object - returns an object type of the value to which statType returns
         """
+        statType = str(statType).replace("'", "''")
         if hasattr(statType, "__len__"):
             query = "SELECT " + ",".join( map( str, statType) ) + " FROM playerstats WHERE steamid='" + str(steamid) + "'"
         else:
@@ -448,6 +452,11 @@ class SQLiteManager(object):
             raise ValueError, "Expected 'options' argument to be a dictionary, instead received: %s" % type(options).__name__
         if options:
             for key, value in options.iteritems():
+                if isinstance(key, str):
+                    key   = key.replace("'", "''")
+
+                if isinstance(value, str):
+                    value = value.replace("'", "''")
                 keys += "%s='%s'," % (key, value)
             keys = keys[:-1]
             query = "UPDATE " + str(table) + " SET " + keys + " WHERE " + str(primaryKeyName) + "='" + str(primaryKeyValue) + "'"
@@ -468,6 +477,10 @@ class SQLiteManager(object):
         if not isinstance(options, dict):
             raise ValueError, "Expected 'options' argument to be a dictionary, instead received: %s" % type(options).__name__
         for key, value in options.iteritems():
+            if isinstance(key, str):
+                key   = key.replace("'", "''")
+            if isinstnace(value, str):
+                value = value.replace("'", "''")
             keys += "%s=%s+%i," % (key, key, value)
         keys = keys[:-1]
         self.cursor.execute("""\
@@ -487,10 +500,10 @@ class SQLiteManager(object):
         
         """ Test if the value passed in options is of several values """
         if hasattr(options, "__len__"):
-            query = "SELECT " + ",".join( map(str, options) ) + " FROM " + table \
+            query = "SELECT " + ",".join( map(lambda x: str(x).replace("'", "''"), options) ) + " FROM " + table \
                     + " WHERE " + primaryKeyName + "='" + primaryKeyValue + "'"
         else:
-            query = "SELECT " + str(options) + " FROM " + table + \
+            query = "SELECT " + str(options).replace("'", "''") + " FROM " + table + \
                     " WHERE " + primaryKeyName + "='" + primaryKeyValue + "'"
                     
         """ Execute the SQL statement and fetch the result """
@@ -1863,42 +1876,44 @@ def es_map_start(event_var):
     """
     es.loadevents('declare', 'addons/eventscripts/%s/events/events.res' % info.basename)
     ranks.update()
-    
-    query = "SELECT name,level,xp,credits FROM playerstats WHERE steamid IN ("
-    for steamid in ranks.getPlayerSlice(0, 10):
-        query += "'%s', " % steamid
-    query = query[:-2] + ")"
-    database.execute(query)
-    results = database.cursor.fetchall()
-    
-    rpgTop5Popup = popuplib.create("sourcerpg_rpgtop5")
-    rpgTop5Popup.addline("=== %s Top Players ===" % prefix)
-    rpgTop5Popup.addline("-" * 30)
-    for index, values in enumerate(results[:5]):
-        name, level, xp, credits = values
-        if len(name) > 16:
-            name = name[0:14]+'...'
-        rpgTop5Popup.addline("->%s. %s - Lvl: %s XP: %s Credits: %s" % (index + 1, name, level, xp, credits ) )
-    rpgTop5Popup.addline("-" * 30)
-    if len(results) > 5:
-        rpgTop5Popup.addline("-> 9. Next")
-        rpgTop5Popup.submenu(9, 'sourcerpg_top10')
-        
-        rpgTop10Popup = popuplib.create("sourcerpg_top10")
-        rpgTop10Popup.addline("=== %s Top Players ===" % prefix)
-        rpgTop10Popup("-" * 30)
-        
-        for index, values in enumerate(results[5:]):
+
+    if ranks.getPlayerSlice(0, 10):
+        query = "SELECT name,level,xp,credits FROM playerstats WHERE steamid IN ("
+        for steamid in ranks.getPlayerSlice(0, 10):
+            query += "'%s', " % steamid
+        query = query[:-2] + ")"
+
+        database.execute(query)
+        results = database.cursor.fetchall()
+
+        rpgTop5Popup = popuplib.create("sourcerpg_rpgtop5")
+        rpgTop5Popup.addline("=== %s Top Players ===" % prefix)
+        rpgTop5Popup.addline("-" * 30)
+        for index, values in enumerate(results[:5]):
             name, level, xp, credits = values
             if len(name) > 16:
                 name = name[0:14]+'...'
-            rpgTop10Popup.addline("->%s. %s - Lvl: %s XP: %s Credits: %s" % (index + 6, name, level, xp, credits ) )
-        
-        rpgTop10Popup("-" * 30)
-        rpgTop10Popup("->8. Back")
-        rpgTop10Popup("0. Cancel")
-        rpgTop10Popup.submenu(8, 'sourcerpg_top5')
-    rpgTop5Popup.addline("0. Close")
+            rpgTop5Popup.addline("->%s. %s - Lvl: %s XP: %s Credits: %s" % (index + 1, name, level, xp, credits ) )
+        rpgTop5Popup.addline("-" * 30)
+        if len(results) > 5:
+            rpgTop5Popup.addline("-> 9. Next")
+            rpgTop5Popup.submenu(9, 'sourcerpg_top10')
+
+            rpgTop10Popup = popuplib.create("sourcerpg_top10")
+            rpgTop10Popup.addline("=== %s Top Players ===" % prefix)
+            rpgTop10Popup("-" * 30)
+
+            for index, values in enumerate(results[5:]):
+                name, level, xp, credits = values
+                if len(name) > 16:
+                    name = name[0:14]+'...'
+                rpgTop10Popup.addline("->%s. %s - Lvl: %s XP: %s Credits: %s" % (index + 6, name, level, xp, credits ) )
+
+            rpgTop10Popup("-" * 30)
+            rpgTop10Popup("->8. Back")
+            rpgTop10Popup("0. Cancel")
+            rpgTop10Popup.submenu(8, 'sourcerpg_top5')
+        rpgTop5Popup.addline("0. Close")
     
     """ Delete all inactive people """
     currentTime = time.time()
@@ -1966,15 +1981,16 @@ def player_spawn(event_var):
     userid = event_var['userid']
     if not es.getplayerprop(userid, 'CBasePlayer.pl.deadflag'):
         player = players[userid]
-        tell(userid, 'round start')
-        if int(spawnAnnounce):
-            tokens = {}
-            tokens['level']  = player['level']
-            tokens['xp']     = player['xp']
-            tokens['nextxp'] = player['level'] * int(xpIncrement) + int(startXp)
-            tell(userid, 'level gained private', tokens)
-        if currentTurboMode and int(turboModeAnnounce):
-            tell(userid, 'turbo mode on')
+        if player is not None:
+            tell(userid, 'round start')
+            if int(spawnAnnounce):
+                tokens = {}
+                tokens['level']  = player['level']
+                tokens['xp']     = player['xp']
+                tokens['nextxp'] = player['level'] * int(xpIncrement) + int(startXp)
+                tell(userid, 'level gained private', tokens)
+            if currentTurboMode and int(turboModeAnnounce):
+                tell(userid, 'turbo mode on')
         
 def server_cvar(event_var):
     """

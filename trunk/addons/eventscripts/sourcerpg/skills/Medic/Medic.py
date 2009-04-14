@@ -81,6 +81,9 @@ class HealManager(object):
         @PARAM userid - the id of the user
         """
         if self.__contains__(userid):
+            name = self.objects[int(userid)].name
+            repeat.stop(name)
+            repeat.delete(name)
             del self.objects[int(userid)]
 
 class HealObject(repeat.Repeat):
@@ -92,15 +95,9 @@ class HealObject(repeat.Repeat):
 
         self.userid   = int(userid)
         self.gameName = es.getGameName()
-        repeat.Repeat.__init__(self, "sourcerpg_medic_user%s" % userid, self.healTeamates)
-
-    def __del__(self):
-        """
-        Default deconstructor, clear up any saved instances such as the repeat
-        object etc.
-        """
-        self.stop()
-        self.delete()
+        self.name     = "sourcerpg_medic_user%s" % userid
+        repeat.Repeat.__init__(self, self.name, self.healTeamates)
+        repeat.dict_repeatInfo[self.name] = self
 
     def __int__(self):
         """
@@ -136,44 +133,43 @@ class HealObject(repeat.Repeat):
         x, y, z = es.getplayerlocation(self.userid)
         team    = es.getplayerteam(self.userid)
         player  = sourcerpg.players[self.userid]
-        level   = player[skillName]
-        if level:
-            """ The user is at least level one in the medic skill """
-            distance = ( int(minDistance) + (level - 1) * float(distanceInc) )
-            healing  = int(healingInc) * level
-            armor    = 0
+        if player is not None:
+            level   = player[skillName]
+            if level:
+                """ The user is at least level one in the medic skill """
+                distance = ( int(minDistance) + (level - 1) * float(distanceInc) )
+                healing  = int(healingInc) * level
+                armor    = 0
 
-            if bool( int(effects) ) and bool( es.ServerVar('est_version') ):
-                """ Create an effect if the server owner wants to """
-                filt = {2:'#c', 3:'#t'}[team]
-                es.server.queuecmd('est_effect 10 %s 0 "sprites/lgtning.vmt" %s %s %s %s 20 0.2 10 10 0 0 255 0 255 30' % (filt, x, y, z, distance) )
-                es.server.queuecmd('est_effect 10 %s 0.2 "sprites/lgtning.vmt" %s %s %s %s 20 0.2 10 10 0 0 255 0 255 30' % (filt, x, y, z, distance) )
+                if bool( int(effects) ) and bool( es.ServerVar('est_version') ):
+                    """ Create an effect if the server owner wants to """
+                    filt = {3:'#c', 2:'#t'}[team]
+                    es.server.queuecmd('est_effect 10 %s 0 "sprites/lgtning.vmt" %s %s %s %s 20 0.2 10 10 0 0 255 0 255 30' % (filt, x, y, z, distance) )
+                    es.server.queuecmd('est_effect 10 %s 0.2 "sprites/lgtning.vmt" %s %s %s %s 20 0.2 10 10 0 0 255 0 255 30' % (filt, x, y, z, distance) )
 
-            for teamPlayer in filter(lambda x: es.getplayerteam(x) == team and not es.getplayerprop(x, 'CBasePlayer.pl.deadflag'), es.getUseridList() ):
-                """ Loop through all the living players on their team """
-                xx, yy, zz = es.getplayerlocation(teamPlayer)
-                if ( (x - xx) ** 2 + (y - yy) ** 2 + (z - zz) ** 2 ) ** 0.5 <= distance:
-                    health = es.getplayerprop(teamPlayer, 'CBasePlayer.m_iHealth')
-                    sourcerpgPlayer = sourcerpg.players[teamPlayer]
-                    if health < sourcerpgPlayer['maxHealth']:
-                        if health + healing > sourcerpgPlayer['maxHealth']:
-                            armor = sourcerpgPlayer['maxHealth'] - health - healing
-                            es.setplayerprop(teamPlayer, 'CBasePlayer.m_iHealth', sourcerpgPlayer['maxHealth'])
+                for teamPlayer in filter(lambda x: es.getplayerteam(x) == team and not es.getplayerprop(x, 'CBasePlayer.pl.deadflag'), es.getUseridList() ):
+                    """ Loop through all the living players on their team """
+                    xx, yy, zz = es.getplayerlocation(teamPlayer)
+                    if ( (x - xx) ** 2 + (y - yy) ** 2 + (z - zz) ** 2 ) ** 0.5 <= distance:
+                        health = es.getplayerprop(teamPlayer, 'CBasePlayer.m_iHealth')
+                        sourcerpgPlayer = sourcerpg.players[teamPlayer]
+                        if health < sourcerpgPlayer['maxHealth']:
+                            if health + healing > sourcerpgPlayer['maxHealth']:
+                                armor = sourcerpgPlayer['maxHealth'] - health - healing
+                                es.setplayerprop(teamPlayer, 'CBasePlayer.m_iHealth', sourcerpgPlayer['maxHealth'])
+                            else:
+                                es.setplayerprop(teamPlayer, 'CBasePlayer.m_iHealth', healing + health)
                         else:
-                            es.setplayerprop(teamPlayer, 'CBasePlayer.m_iHealth', healing + health)
-                    else:
-                        armor = healing
-                        
-                    if armor and self.gameName == "cstrike":
-                        """ if we're playing CSS and we have armor to increment, do the task """
-                        maxArmor = sourcerpgPlayer['maxArmor']
-                        currentArmor = es.getplayerprop(teamPlayer, 'CCSPlayer.m_ArmorValue')
-                        currentArmor += armor
-                        if currentArmor > maxArmor:
-                            currentArmor = maxArmor
-                        es.setplayerprop(teamPlayer, 'CCSPlayer.m_ArmorValue', currentArmor)
-                    
+                            armor = healing
 
+                        if armor and self.gameName == "cstrike":
+                            """ if we're playing CSS and we have armor to increment, do the task """
+                            maxArmor = sourcerpgPlayer['maxArmor']
+                            currentArmor = es.getplayerprop(teamPlayer, 'CCSPlayer.m_ArmorValue')
+                            currentArmor += armor
+                            if currentArmor > maxArmor:
+                                currentArmor = maxArmor
+                            es.setplayerprop(teamPlayer, 'CCSPlayer.m_ArmorValue', currentArmor)
 
 heal = HealManager() # Create the healManager() singleton
 
@@ -201,7 +197,8 @@ def player_spawn(event_var):
     userid = event_var['userid']
     if not es.getplayerprop(userid, 'CBasePlayer.pl.deadflag'):
         """ Player is alive, so it is the actual player spawn event """
-        heal[userid].start(float(delay))
+        if userid in heal:
+            heal[userid].start(float(delay), 0)
 
 def player_death(event_var):
     """

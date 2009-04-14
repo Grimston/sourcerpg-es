@@ -188,10 +188,12 @@ def player_spawn(event_var):
     """
     userid = event_var['userid']
     if not es.getplayerprop(userid, 'CBasePlayer.pl.deadflag'):
-        gravity.removePlayer(userid)
-        sourcerpg.players[userid]['maxGravity'] = 1.0
-        """ We need to delay so the main class don't overwrite our minimum values """
-        gamethread.delayed(0, setGravityAmount, userid)
+        player = sourcerpg.players[userid]
+        if player is not None:
+            gravity.removePlayer(userid)
+            sourcerpg.players[userid]['maxGravity'] = 1.0
+            """ We need to delay so the main class don't overwrite our minimum values """
+            gamethread.delayed(0, setGravityAmount, userid)
         
 def player_death(event_var):
     """

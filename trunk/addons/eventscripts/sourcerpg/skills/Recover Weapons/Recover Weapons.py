@@ -1,6 +1,7 @@
 import es
 import playerlib
 import weaponlib
+import gamethread
 
 from sourcerpg import sourcerpg
 
@@ -38,7 +39,18 @@ def player_activate(event_var):
 
     @PARAM event_var - an automatic passed event instance
     """
-    player              = sourcerpg.players[event_var['userid']]
+    gamethread.delayed(0, setDefaultAttributes, event_var['userid'])
+
+def setDefaultAttributes(userid):
+    """
+    A function to assign the default attributes and values to the players
+    object within SourceRPG. We need to delay by 0 seconds to ensure that
+    1 tick is passed so we can be sure that the Player's object has been
+    created.
+
+    @PARAM userid - the id of the user we wish to assign the values to
+    """
+    player              = sourcerpg.players[userid]
     player['recover']   = False
     player['primary']   = None
     player['secondary'] = None
@@ -59,26 +71,27 @@ def player_spawn(event_var):
         """ The player is dead so we ignore this event, return early """
         return
     player = sourcerpg.players[userid]
-    if player['recover']:
-        level = player[skillName]
-        if level:
-            """ Player is at least level one in this skill """
-            for weaponName in weaponlib.getWeaponNameList("#grenade"):
-                while player[weaponName]:
-                    es.server.queuecmd('es_xgive %s %s' %  (userid, weaponName) )
-                    player[weaponName] -= 1
+    if player is not None:
+        if player['recover']:
+            level = player[skillName]
+            if level:
+                """ Player is at least level one in this skill """
+                for weaponName in weaponlib.getWeaponNameList("#grenade"):
+                    while player[weaponName]:
+                        es.server.queuecmd('es_xgive %s %s' %  (userid, weaponName) )
+                        player[weaponName] -= 1
 
-            if level >= 2:
-                """ Player has at least level 2, give them back their secondary """
-                if player["secondary"]:
-                    es.server.queuecmd('es_xgive %s %s' % (userid, player["secondary"]) )
+                if level >= 2:
+                    """ Player has at least level 2, give them back their secondary """
+                    if player["secondary"]:
+                        es.server.queuecmd('es_xgive %s %s' % (userid, player["secondary"]) )
 
-            if level >= 3:
-                """ Player has at least level 3, give them back their primary """
-                if player["primary"]:
-                    es.server.queuecmd('es_xgive %s %s' % (userid, player["primary"]) )
+                if level >= 3:
+                    """ Player has at least level 3, give them back their primary """
+                    if player["primary"]:
+                        es.server.queuecmd('es_xgive %s %s' % (userid, player["primary"]) )
 
-            player['recover'] = False
+                player['recover'] = False
 
 def player_death(event_var):
     """
@@ -104,19 +117,20 @@ def item_pickup(event_var):
     weapon = event_var['item']
     userid = event_var['userid']
     player = sourcerpg.players[userid]
-    level  = player[skillName]
-    if level:
-        """ Player is at least level 1 in this skill """
-        if weapon.startswith("weapon_"):
-            """ The item picked up was a weapon """
-            if weapon in weaponlib.getWeaponNameList('#primary') and level >= 3:
-                player['primary'] = weapon
+    if player is not None:
+        level  = player[skillName]
+        if level:
+            """ Player is at least level 1 in this skill """
+            if weapon.startswith("weapon_"):
+                """ The item picked up was a weapon """
+                if weapon in weaponlib.getWeaponNameList('#primary') and level >= 3:
+                    player['primary'] = weapon
 
-            elif weapon in weaponlib.getWeaponNameList('#secondary') and level >= 2:
-                player['secondary'] = weapon
+                elif weapon in weaponlib.getWeaponNameList('#secondary') and level >= 2:
+                    player['secondary'] = weapon
 
-            elif weapon in weaponlib.getWeaponNameList('#grenade'):
-                player[weapon] += 1
+                elif weapon in weaponlib.getWeaponNameList('#grenade'):
+                    player[weapon] += 1
 
 def flashbang_detonate(event_var):
     """

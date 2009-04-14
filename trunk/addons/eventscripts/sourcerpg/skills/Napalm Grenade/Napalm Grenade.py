@@ -42,14 +42,15 @@ def player_hurt(event_var):
     if int(attacker):
         """ The attacker did not hurt themselves """
         player = sourcerpg.players[attacker]
-        level  = player[skillName]
-        if level:
-            """ The player has at least level 1 in napalm nade """
-            if event_var['es_userteam'] <> event_var['es_attackerteam']:
-                """ It was not a team kill """
-                player = playerlib.getPlayer(userid) 
-                player.burn()
-                gamethread.delayedname('sourcerpg_burn_user%s' % userid, 1.0 * level, player.extinguish)
+        if player is not None:
+            level  = player[skillName]
+            if level:
+                """ The player has at least level 1 in napalm nade """
+                if event_var['es_userteam'] <> event_var['es_attackerteam']:
+                    """ It was not a team kill """
+                    player = playerlib.getPlayer(userid)
+                    player.burn()
+                    gamethread.delayedname('sourcerpg_burn_user%s' % userid, 1.0 * level, player.extinguish)
                 
 def player_death(event_var):
     """

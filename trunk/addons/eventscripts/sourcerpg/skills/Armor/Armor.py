@@ -40,12 +40,13 @@ def player_spawn(event_var):
     if not es.getplayerprop(userid, 'CBasePlayer.pl.deadflag'):
         """ Only execute if the player is alive """
         player = sourcerpg.players[userid]
-        if player[skillName]:
-            """
-            Delay the function so it's not overwritten by resetting the 
-            defaults in sourcerpg
-            """
-            gamethread.delayed(0, setArmor, userid)
+        if player is not None:
+            if player[skillName]:
+                """
+                Delay the function so it's not overwritten by resetting the
+                defaults in sourcerpg
+                """
+                gamethread.delayed(0, setArmor, userid)
         
 def sourcerpg_skillupgrade(event_var):
     """

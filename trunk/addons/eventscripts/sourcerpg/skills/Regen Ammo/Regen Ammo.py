@@ -207,10 +207,11 @@ def item_pickup(event_var):
     """
     userid = event_var['userid']
     player = sourcerpg.players[userid]
-    if player[skillName]:
-        ammoPlayer = ammo[userid]
-        if not ammoPlayer.isRunning():
-            ammoPlayer.start( player[skillName], float(regenDelay) )
+    if player is not None:
+        if player[skillName]:
+            ammoPlayer = ammo[userid]
+            if not ammoPlayer.isRunning():
+                ammoPlayer.start( player[skillName], float(regenDelay) )
         
 def weapon_reload(event_var):
     """

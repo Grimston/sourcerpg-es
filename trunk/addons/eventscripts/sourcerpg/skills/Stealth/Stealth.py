@@ -43,10 +43,11 @@ def player_spawn(event_var):
     if not es.getplayerprop(userid, 'CBasePlayer.pl.deadflag'):
         """ If the player is not dead """
         player = sourcerpg.players[userid]
-        level  = player[skillName]
-        if level:
-            """ If the level is greater than 0 """
-            gamethread.delayed(0, setStealth, userid)
+        if player is not None:
+            level  = player[skillName]
+            if level:
+                """ If the level is greater than 0 """
+                gamethread.delayed(0, setStealth, userid)
             
 def sourcerpg_skillupgrade(event_var):
     """
@@ -82,7 +83,7 @@ def setStealth(userid):
     eachSegment = player['minStealth'] - (level * eachSegment)
     if eachSegment < 0:
         eachSegment = 0
-    elif eachsegment > 255:
+    elif eachSegment > 255:
         eachSegment = 255
     player['minStealth'] = eachSegment
     

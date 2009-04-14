@@ -1,5 +1,6 @@
 import es
 import gamethread
+import playerlib
 
 from sourcerpg import sourcerpg
 
@@ -71,7 +72,11 @@ def player_spawn(event_var):
     
     @PARAM event_var - an automatically passed event instance
     """
-    sourcerpg.players[event_var['userid']]['adrenalined'] = False
+    userid = event_var['userid']
+    if not es.getplayerprop(userid, 'CBasePlayer.pl.deadflag'):
+        player = sourcerpg.players[userid]
+        if player is not None:
+            sourcerpg.players[userid]['adrenalined'] = False
     
 def player_disconnect(event_var):
     """
