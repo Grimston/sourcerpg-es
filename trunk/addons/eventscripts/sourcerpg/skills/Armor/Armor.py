@@ -3,7 +3,7 @@ import gamethread
 
 from sourcerpg import sourcerpg
 
-skillName = "Health"
+skillName = "Armor"
 
 """ Execute the configuration information """
 config = sourcerpg.skillConfig
