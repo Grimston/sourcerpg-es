@@ -77,7 +77,7 @@ def player_spawn(event_var):
             if level:
                 """ Player is at least level one in this skill """
                 for weaponName in weaponlib.getWeaponNameList("#grenade"):
-                    while player[weaponName]:
+                    while player[weaponName] > 0:
                         es.server.queuecmd('es_xgive %s %s' %  (userid, weaponName) )
                         player[weaponName] -= 1
 

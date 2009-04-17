@@ -23,12 +23,14 @@ def load():
     This method executes when the script loads. Register the skill
     """
     sourcerpg.skills.addSkill( skillName, maxLevel, creditStart, creditIncrement )
+    es.doblock("corelib/noisy_on")
     
 def unload():
     """
     This method executes when the script unloads. Unregister the skill
     """
     sourcerpg.skills.removeSkill( skillName )
+    es.doblock("corelib/noisy_off")
     
 def player_hurt(event_var):
     """
@@ -39,7 +41,7 @@ def player_hurt(event_var):
     """
     userid   = event_var['userid']
     attacker = event_var['attacker']
-    if int(attacker):
+    if attacker.isdigit() and int(attacker) > 0:
         """ The attacker did not hurt themselves """
         player = sourcerpg.players[attacker]
         if player is not None:
@@ -48,10 +50,25 @@ def player_hurt(event_var):
                 """ The player has at least level 1 in napalm nade """
                 if event_var['es_userteam'] <> event_var['es_attackerteam']:
                     """ It was not a team kill """
-                    player = playerlib.getPlayer(userid)
-                    player.burn()
-                    gamethread.delayedname('sourcerpg_burn_user%s' % userid, 1.0 * level, player.extinguish)
+                    if event_var['weapon'] == "hegrenade":
+                        """ Was a kill with a grenade """
+                        player = playerlib.getPlayer(userid)
+                        player.burn()
+                        gamethread.delayedname('sourcerpg_burn_user%s' % userid, 1.0 * level, player.extinguish)
                 
+def weapon_fire(event_var):
+    """
+    If the weapon is a grenade, set it on fire.
+
+    @PARAM event_var - an automatically passed event instance
+    """
+    if event_var['weapon'] == "hegrenade":
+        userid = event_var['userid']
+        player = sourcerpg.players[userid]
+        if player is not None:
+            if player[skillName]:
+                es.server.queuecmd('es_xfire %s hegrenade_projectile ignite' % userid)
+
 def player_death(event_var):
     """
     Executed when a player dies - ensure that they are extinguished so we don't
