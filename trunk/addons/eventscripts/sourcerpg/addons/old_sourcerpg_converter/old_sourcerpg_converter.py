@@ -20,10 +20,10 @@ from shutil import move
 import psyco
 psyco.full()
 
-stringPath = os.path.join( es.getAddonPath( sourcerpg.info.basename ), "cssrpg.db")
+stringPath = os.path.join( es.getAddonPath( sourcerpg.info.basename ), "players.sqldb")
 
 if not os.path.isfile(stringPath):
-    raise RuntimeError, "Cannot find CSS:RPG database, please ensure it is in ../sourcerpg/"
+    raise RuntimeError, "Cannot find the player's database, please ensure it is in ../sourcerpg/"
 
 class ReadSql(object):
     "Class to read the SQL Database from cssrpg.db"
@@ -51,13 +51,6 @@ class ReadSql(object):
         self.connection = None
         self.cursor = None
 
-    def readItems(self):
-        """
-        Read all items (skills) from the SQL Database
-        """
-        query = self.cursor.execute("SELECT * FROM items")
-        return query.fetchall()
-
     def readPlayers(self):
         """
         Read a specific player's stats, including levels,
@@ -72,51 +65,42 @@ def convertEntries():
     structure and all of SourceRPG's variable names.
     """
     rpgPlayers  = {}
-    itemID      = {}
-    rpgName     = ["Speed", "Gravity", "Stun Grenade", "Smog Grenade", "Disable", "Armor"]
     sqlInstance = ReadSql()
     players     = sqlInstance.readPlayers()
-    skills      = sqlInstance.readItems()
     del sqlInstance
 
     """ Iterate through the players """
     for player in xrange(len(players)):
-        steamid = str(players[player][2])
+        steamid = str(players[player][0])
         if steamid == "BOT":
-            steamid = "BOT_%s"%(players[player][1])
-        rpgPlayers[steamid] = {}
-        rpgPlayers[steamid]["name"]    = players[player][1]
-        rpgPlayers[steamid]["level"]   = players[player][3]
-        rpgPlayers[steamid]["xp"]      = players[player][4]
-        rpgPlayers[steamid]["credits"] = players[player][5]
-        itemID[players[player][8]] = steamid
+            steamid = "BOT_%s"%(players[player][24])
+        rpgPlayers[steamid]                              = {}
+        rpgPlayers[steamid]["name"]                      = players[player][24]
+        rpgPlayers[steamid]["level"]                     = players[player][1]
+        rpgPlayers[steamid]["xp"]                        = players[player][2]
+        rpgPlayers[steamid]["credits"]                   = players[player][3]
+        rpgPlayers[steamid]["popup"]                     = players[player][21]
+        rpgPlayers[steamid]["lastconnected"]             = players[player][25]
+        rpgPlayers[steamid]["skills"]                    = {}
+        rpgPlayers[steamid]["skills"]["Regen"]           = players[player][4]
+        rpgPlayers[steamid]["skills"]["Health"]          = players[player][5]
+        rpgPlayers[steamid]["skills"]["Regen Ammo"]      = players[player][6]
+        rpgPlayers[steamid]["skills"]["Regen Armor"]     = players[player][20]
+        rpgPlayers[steamid]["skills"]["Vampire"]         = players[player][8]
+        rpgPlayers[steamid]["skills"]["Stealth"]         = players[player][7]
+        rpgPlayers[steamid]["skills"]["Long Jump"]       = players[player][12]
+        rpgPlayers[steamid]["skills"]["Napalm Grenade"]  = players[player][9]
+        rpgPlayers[steamid]["skills"]["Ice Stab"]        = players[player][10]
+        rpgPlayers[steamid]["skills"]["Frost Pistol"]    = players[player][11]
+        rpgPlayers[steamid]["skills"]["Adrenaline"]      = players[player][22]
+        rpgPlayers[steamid]["skills"]["Recover Weapons"] = players[player][17]
+        rpgPlayers[steamid]["skills"]["Medic"]           = players[player][23]
+        rpgPlayers[steamid]["skills"]["Speed"]           = players[player][13]
+        rpgPlayers[steamid]["skills"]["Gravity"]         = players[player][14]
+        rpgPlayers[steamid]["skills"]["Stun Grenade"]    = players[player][15]
+        rpgPlayers[steamid]["skills"]["Smog Grenade"]    = players[player][16]
+        rpgPlayers[steamid]["skills"]["Disable"]         = players[player][18]
 
-    """ Loop through the skills table and add all the values to the dictioanry """
-    for x in xrange(len(skills)):
-        try:
-            if skills[x][0] in itemID:
-                steamid = itemID[skills[x][0]]
-                rpgPlayers[steamid]["skills"] = {}
-                rpgPlayers[steamid]["skills"]["Regen"]           = skills[x][1]
-                rpgPlayers[steamid]["skills"]["Health"]          = skills[x][2]
-                rpgPlayers[steamid]["skills"]["Regen Ammo"]      = skills[x][3]
-                rpgPlayers[steamid]["skills"]["Vampire"]         = skills[x][4]
-                rpgPlayers[steamid]["skills"]["Stealth"]         = skills[x][5]
-                rpgPlayers[steamid]["skills"]["Long Jump"]        = skills[x][6]
-                rpgPlayers[steamid]["skills"]["Napalm Grenade"]  = skills[x][7]
-                rpgPlayers[steamid]["skills"]["Ice Stab"]        = skills[x][8]
-                rpgPlayers[steamid]["skills"]["Frost Pistol"]    = skills[x][9]
-                rpgPlayers[steamid]["skills"]["Adrenaline"]      = skills[x][10]
-                rpgPlayers[steamid]["skills"]["Recover Weapons"] = skills[x][11]
-                rpgPlayers[steamid]["skills"]["Medic"]           = skills[x][12]
-        except IndexError:
-            pass
-
-    """ Loop through the players and add in the missing new values """
-    for player in rpgPlayers:
-        if len(rpgPlayers[player]) == 16:
-            for iterator in rpgPlayers[player]:
-                rpgPlayers[player]["skills"][rpgName[iterator]] = 0
     return rpgPlayers
 
 def writeEntries():
@@ -124,10 +108,9 @@ def writeEntries():
     This loops through the SQL Converted DB (which is now a dictionary),
     and checks it against the players.db... If the SteamID's are different,
     then that SteamID is appended to player.db, then at the end, remove the
-    cssrpg.db, and write the players.db to disk
+    players.sqldb, and write the players.sqlite to disk
     """
     entries = convertEntries()
-    now     = time.time()
     print "Estimated time: %02d:%02d" % divmod(int(0.0125 * len(entries)), 60)
 
     for steamid, values in entries.iteritems():
@@ -144,9 +127,9 @@ def writeEntries():
                                     (steamid, popup, credits, name, level, xp,
                                     lastconnected)
                                     VALUES ('%s', %s, %s, '%s', %s, %s, '%s')"""
-                                    % (steamid, sourcerpg.popupStatus, values['credits'],
+                                    % (steamid, values['popup'], values['credits'],
                                     values['name'].replace("'", "''"), values['level'],
-                                    values['xp'], now) )
+                                    values['xp'], values['lastconnected']) )
             for skillName, level in values['skills'].iteritems():
                 """ Loop through all the converted skills and attributes """
                 if skillName not in sourcerpg.skills:
@@ -158,10 +141,9 @@ def writeEntries():
                 """ Obtain the rowid from the database and set the new skill """
                 skillId = sourcerpg.skills[skillName].rowid
                 sourcerpg.database.addSkillIntoPlayerDatabase(steamid, skillId, level)
-                            
+
         except OperationalError:
             """ We got an error, ignore it and continue to the next person. """
-            print "ERRORZ"
             continue
 
     """ Check to see if a backup folder is created, if not, create it. """
@@ -170,7 +152,7 @@ def writeEntries():
        os.mkdir(directory)
 
     """ Move the cssrpgd database to a new directory and save the main databse. """
-    move(stringPath, os.path.join(directory, "cssrpg.db") )
+    move(stringPath, os.path.join(directory, "players.sqldb") )
     sourcerpg.database.save()
 
     """ Restart the mod then change maps to take effect """

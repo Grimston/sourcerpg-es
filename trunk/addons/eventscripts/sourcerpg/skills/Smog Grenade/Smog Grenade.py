@@ -129,7 +129,8 @@ def unload():
     This method executes when the script unloads. Unregister the skill
     """
     sourcerpg.skills.removeSkill( skillName )
-    del smoke # Call the deconstructor on the singleton
+    smoke.clear()
+    smoke.repeat.delete()
 
 def round_freeze_end(event_var):
     """

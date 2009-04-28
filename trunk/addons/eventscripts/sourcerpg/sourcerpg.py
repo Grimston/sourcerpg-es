@@ -355,9 +355,9 @@ class SQLiteManager(object):
         @PARAM skillName - the string name of the skill to check
         @RETURN boolean - whether or not the skill exists for the player
         """
-        convertedSkillName = str(skillName).replace("'", "''")
+        skillId = self.getRowIdFromSkillName(skillName)
         self.cursor.execute("SELECT level FROM playerskills WHERE Steamid=\"" + 
-                            str(steamid) + "\" AND name=\"" + str(convertedSkillName) +"\"")
+                            str(steamid) + "\" AND skillrowid=" + str(skillId))
         return bool( self.fetchone() )
             
     def removeSkill(self, skillName):
@@ -479,7 +479,7 @@ class SQLiteManager(object):
         for key, value in options.iteritems():
             if isinstance(key, str):
                 key   = key.replace("'", "''")
-            if isinstnace(value, str):
+            if isinstance(value, str):
                 value = value.replace("'", "''")
             keys += "%s=%s+%i," % (key, key, value)
         keys = keys[:-1]
@@ -507,6 +507,7 @@ class SQLiteManager(object):
                     " WHERE " + primaryKeyName + "='" + primaryKeyValue + "'"
                     
         """ Execute the SQL statement and fetch the result """
+        print "Query: %s" % query
         self.cursor.execute(query)
         return self.fetchone()
         
@@ -741,7 +742,7 @@ class AddonManager(object):
         
         @RETURN yield object - each AddonInstance
         """
-        for addon in self.addons.iteritems():
+        for addon in self.addons.itervalues():
             yield addon
             
     def __contains__(self, addonName):
@@ -1857,13 +1858,34 @@ def unload():
     Executed when SourceRPG is unloaded. Clear up all the global values which
     will still be left in other libraries. Save the database.
     """
-    database.save()
+    database.save() # Save the database
+
+    """ Remove any popups """
     deleted = []
     for popup in popuplib.gPopups:
         if popup.startswith('sourcerpg_'):
             deleted.append(popup)
     for popup in deleted:
         popuplib.delete(popup)
+
+    """ Unload all skills """
+    for skill in skills:
+        es.unload("sourcerpg/skills/" + skill.name)
+
+    """ Unload all addons """
+    for addon in addons:
+        es.unload("sourcerpg/addons/" + addon.name)
+
+    """ Unregister the server commands """
+    cmdlib.unregisterServerCommand("srpg")
+    cmdlib.unregisterSayCommand("rpgmenu")
+    cmdlib.unregisterSayCommand("rpgupgrade")
+    cmdlib.unregisterSayCommand("rpgsell")
+    cmdlib.unregisterSayCommand("rpghelp")
+    cmdlib.unregisterSayCommand("rpgstats")
+    cmdlib.unregisterSayCommand("rpgrank")
+    cmdlib.unregisterSayCommand("rpgpopup")
+    cmdlib.unregisterSayCommand("rpgtop10")
         
     gamethread.cancelDelayed('sourcerpg_databasesave')
     
@@ -1897,11 +1919,11 @@ def es_map_start(event_var):
         rpgTop5Popup.addline("-" * 30)
         if len(results) > 5:
             rpgTop5Popup.addline("-> 9. Next")
-            rpgTop5Popup.submenu(9, 'sourcerpg_top10')
+            rpgTop5Popup.submenu(9, 'sourcerpg_rpgtop10')
 
-            rpgTop10Popup = popuplib.create("sourcerpg_top10")
+            rpgTop10Popup = popuplib.create("sourcerpg_rpgtop10")
             rpgTop10Popup.addline("=== %s Top Players ===" % prefix)
-            rpgTop10Popup("-" * 30)
+            rpgTop10Popup.addline("-" * 30)
 
             for index, values in enumerate(results[5:]):
                 name, level, xp, credits = values
@@ -1909,10 +1931,10 @@ def es_map_start(event_var):
                     name = name[0:14]+'...'
                 rpgTop10Popup.addline("->%s. %s - Lvl: %s XP: %s Credits: %s" % (index + 6, name, level, xp, credits ) )
 
-            rpgTop10Popup("-" * 30)
-            rpgTop10Popup("->8. Back")
-            rpgTop10Popup("0. Cancel")
-            rpgTop10Popup.submenu(8, 'sourcerpg_top5')
+            rpgTop10Popup.addline("-" * 30)
+            rpgTop10Popup.addline("->8. Back")
+            rpgTop10Popup.addline("0. Cancel")
+            rpgTop10Popup.submenu(8, 'sourcerpg_rpgtop5')
         rpgTop5Popup.addline("0. Close")
     
     """ Delete all inactive people """
