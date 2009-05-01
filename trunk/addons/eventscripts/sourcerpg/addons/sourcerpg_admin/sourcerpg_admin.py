@@ -82,7 +82,7 @@ class AdminManager(object):
         """
         steamid, amount = args
         amount = int(amount)
-        popup.addXp(userid, "sourcerpg_addxp_player%s" % steamid, amount)
+        popup.addXp(userid, amount, "sourcerpg_addxp_player%s" % steamid)
         
     def clientAddLevels(self, userid, args):
         """
@@ -95,7 +95,7 @@ class AdminManager(object):
         """
         steamid, amount = args
         amount = int(amount)
-        popup.addLevels(userid, "sourcerpg_addlevel_player%s" % steamid, amount)
+        popup.addLevels(userid, amount, "sourcerpg_addlevel_player%s" % steamid)
     
     def clientAddCredits(self, userid, args):
         """
@@ -108,7 +108,7 @@ class AdminManager(object):
         """
         steamid, amount = args
         amount = int(amount)
-        popup.addCredits(userid, "sourcerpg_addcredit_player%s" % steamid, amount)
+        popup.addCredits(userid, amount, "sourcerpg_addcredit_player%s" % steamid)
     
     @staticmethod
     def failCommand(userid, args):
@@ -258,6 +258,7 @@ class PopupCallbacks(object):
         @PARAM choice - the steamid of the user the popup will represent
         @PARAM popupid - the name of the popup which was used to access this method
         """
+        choice  = choice[choice.lower().find("steam"):]
         details = self.getDetails(choice)
         playerMenu = popuplib.create("sourcerpg_player%s" % choice)
         playerMenu.addline("=== %s Admin (%s) ===" % (sourcerpg.prefix, details['name']) )
@@ -299,11 +300,11 @@ class PopupCallbacks(object):
             
         elif choice == 4:
             """ Upgrade a skill """
-            self.buildPlayerSkillsMenu("sourcerpg_upgrade_player%s" % target, target, self.upgradeSkill, popupid).send(userid)
+            self.buildPlayerSkillsMenu("sourcerpg_upgrade_player%s" % target, target, self.upgradeSkill, popupid, True).send(userid)
             
         elif choice == 5:
             """ Downgrade a skill """
-            self.buildPlayerSkillsMenu("sourcerpg_downgrade_player%s" % target, target, self.downgradeSkill, popupid).send(userid)
+            self.buildPlayerSkillsMenu("sourcerpg_downgrade_player%s" % target, target, self.downgradeSkill, popupid, False).send(userid)
             
         elif choice == 6:
             """ Max all skills """
@@ -320,7 +321,6 @@ class PopupCallbacks(object):
                 The player is offline so ensure that all the new values are
                 assigned
                 """
-                skills = {}
                 for skill in sourcerpg.skills:
                     sourcerpg.database.updateSkillForPlayer(target, skill.rowid, skill.maxLevel)
             tell(userid, 'maxed skills')
@@ -339,7 +339,7 @@ class PopupCallbacks(object):
                 sourcerpg.database.execute("DELETE FROM playerkills WHERE steamid='" + target + "'")
         
     @staticmethod
-    def buildPlayerSkillsMenu(popupName, target, function, returnPopup):
+    def buildPlayerSkillsMenu(popupName, target, function, returnPopup, upgrade=True):
         """
         This function builds the skills for a player and allows us to
         choose an option from the menu calling back as the function
@@ -356,11 +356,32 @@ class PopupCallbacks(object):
         if popup.isOnline(target):
             userid = es.getuserid(target)
             for skill in sourcerpg.skills:
-                popupInstance.addoption(skill.name, skill.name + " (" + str(sourcerpg.players[userid][skill.name]) + ")" )
+                level = sourcerpg.players[userid][skill.name]
+                if upgrade:
+                    if level >= skill.maxLevel:
+                        popupInstance.addoption(None, skill.name + " (MAXED)", False )
+                    else:
+                        popupInstance.addoption(skill.name, skill.name + "(" + str(level) + " => " + str(level + 1) + ")" )
+                else:
+                    if level <= 0:
+                        popupInstance.addoption(None, skill.name + " (MINIMUM)", False)
+                    else:
+                        popupInstance.addoption(skill.name, skill.name + "(" + str(level) + " => " + str(level - 1) + ")" )
         else:
             """ Otherwise we have to get the skill level directly from the database """
             for skill in sourcerpg.skills:
-                popupInstance.addoption(skill.name, skill.name + " (" + str(sourcerpg.database.getSkillLevel(target, skill.name) ) + ")" )
+                level = sourcerpg.database.getSkillLevel(target, skill.name)
+                if upgrade:
+                    if level >= skill.maxLevel:
+                        popupInstance.addoption(None, skill.name + " (MAXED)", False )
+                    else:
+                        popupInstance.addoption(skill.name, skill.name + "(" + str(level) + " => " + str(level + 1) + ")" )
+                else:
+                    if level <= 0:
+                        popupInstance.addoption(None, skill.name + " (MINIMUM)", False)
+                    else:
+                        popupInstance.addoption(skill.name, skill.name + "(" + str(level) + " => " + str(level - 1) + ")" )
+        popupInstance.submenu(10, returnPopup)
         return popupInstance
         
     @staticmethod
@@ -389,7 +410,7 @@ class PopupCallbacks(object):
         amountMenu.c_exitformat = "0. Back"
         return amountMenu
         
-    def downgradeSkill(self, userid, choice, popupid):
+    def upgradeSkill(self, userid, choice, popupid):
         """
         This method increments a skill at the admin's choice by one.
         
@@ -399,7 +420,7 @@ class PopupCallbacks(object):
         """
         target = popupid.replace("sourcerpg_upgrade_player", "")
         if self.isOnline(target):
-            sourcerpg.checkSkillForUpgrading(es.getuserid(target), choice, None)
+            sourcerpg.checkSkillForUpgrading(es.getuserid(target), choice, None, False, False)
         else:
             """ Player is offline, make sure that you don't go over the max level """
             level = sourcerpg.database.getSkillLevel(target, choice)
@@ -408,7 +429,7 @@ class PopupCallbacks(object):
                 sourcerpg.database.increment('playerskills', 'steamid', target, {choice:1})
         self.chosenPlayer(userid, target, 'sourcerpg_admin')
     
-    def upgradeSkill(userid, choice, popupid):
+    def downgradeSkill(self, userid, choice, popupid):
         """
         This method decrements a skill at the admin's choice by one.
         
@@ -418,7 +439,7 @@ class PopupCallbacks(object):
         """
         target = popupid.replace("sourcerpg_downgrade_player", "")
         if self.isOnline(target):
-            sourcerpg.checkSkillForSelling(es.getuserid(target), choice, None)
+            sourcerpg.checkSkillForSelling(es.getuserid(target), choice, None, False, False)
         else:
             """ Player is offline, makes sure we don't go below 0 """
             level = sourcerpg.database.getSkillLevel(target, choice)
@@ -444,8 +465,6 @@ class PopupCallbacks(object):
         if isinstance(choice, str):
             if choice.isdigit():
                 choice = int(choice)
-        if not isinstance(choice, int):
-            return
         if isinstance(choice, int):
             tokens = {}
             tokens['amount'] = str(choice)
@@ -496,17 +515,19 @@ class PopupCallbacks(object):
         if isinstance(choice, str):
             if choice.isdigit():
                 choice = int(choice)
-        if not isinstance(choice, int):
-            return
-        if popup.isOnline(target):
-            player = es.getuserid(target)
-            sourcerpg.players[player].addLevel(choice)
-            tokens['name'] = sourcerpg.players[player]['name']
+        if isinstance(choice, int):
+            if popup.isOnline(target):
+                player = es.getuserid(target)
+                sourcerpg.players[player].addLevel(choice)
+                tokens['name'] = sourcerpg.players[player]['name']
+            else:
+                sourcerpg.database.increment('playerstats', 'steamid', target, {'level' : choice})
+                tokens['name'] = sourcerpg.database.query('playerstats', 'steamid', target, 'name')
+            tell(userid, 'add levels', tokens)
+            popuplib.send(popupid, userid)
         else:
-            sourcerpg.database.increment('playerstats', 'steamid', target, {'level' : choice})
-            tokens['name'] = sourcerpg.database.query('playerstats', 'steamid', target, 'name')
-        tell(userid, 'add levels', tokens)
-        popuplib.send(popupid, userid)
+            es.escinputbox(30, userid, '=== %s Add Xp ===' % sourcerpg.prefix,
+                'Enter the amount' , 'rpgaddlevels" "%s' % target)
         
     @staticmethod
     def addCredits(userid, choice, popupid):
@@ -526,17 +547,19 @@ class PopupCallbacks(object):
         if isinstance(choice, str):
             if choice.isdigit():
                 choice = int(choice)
-        if not isinstance(choice, int):
-            return
-        if popup.isOnline(target):
-            player = es.getuserid(target)
-            sourcerpg.players[player]['credits'] += choice
-            tokens['name'] = sourcerpg.players[player]['name']
+        if isinstance(choice, int):
+            if popup.isOnline(target):
+                player = es.getuserid(target)
+                sourcerpg.players[player]['credits'] += choice
+                tokens['name'] = sourcerpg.players[player]['name']
+            else:
+                sourcerpg.database.increment('playerstats', 'steamid', target, {'credits' : choice})
+                tokens['name'] = sourcerpg.database.query('playerstats', 'steamid', target, 'name')
+            tell(userid, 'add credits', tokens)
+            popuplib.send(popupid, userid)
         else:
-            sourcerpg.database.increment('playerstats', 'steamid', target, {'credits' : choice})
-            tokens['name'] = sourcerpg.database.query('playerstats', 'steamid', target, 'name')
-        tell(userid, 'add credits', tokens)
-        popuplib.send(popupid, userid)
+            es.escinputbox(30, userid, '=== %s Add Xp ===' % sourcerpg.prefix,
+                'Enter the amount' , 'rpgaddcredits" "%s' % target)
     
     @staticmethod
     def confirmation(self, userid, choice, popupid):
@@ -571,10 +594,12 @@ class PopupCallbacks(object):
             userid = es.getuserid()
             return sourcerpg.players[userid] 
         """ The player is offline, query database """
-        
+
+
         """ Query the stats of the player """
-        sourcerpg.database.execute("""\
-SELECT name,level,xp,credits FROM playerstats WHERE steamid='%s' """ % steamid)
+        query = "SELECT name,level,xp,credits FROM playerstats WHERE steamid='%s'" % steamid
+        print "Query: %s" % query
+        sourcerpg.database.execute(query)
         values['name'], values['level'], values['xp'], values['credits'] = sourcerpg.database.cursor.fetchone()
         
         """ Query the levels of the current loaded skills """

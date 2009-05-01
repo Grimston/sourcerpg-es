@@ -1037,7 +1037,11 @@ class PlayerObject(object):
         if item in self.currentAttributes:
             return self.currentAttributes[item]
         if item in self.currentSkills:
-            return self.currentSkills[item]
+            level = self.currentSkills[item]
+            if item in skills:
+                if level > skills[item].maxLevel:
+                    level = int(skills[item].maxLevel)
+            return level
         if item in self.playerAttributes:
             return self.playerAttributes[item]
         return None
@@ -1541,7 +1545,7 @@ class CommandManager(object):
         This method unloads all current loaded skills
         """
         for skill in skills.skills.copy():
-            es.unload("%s/skills/%s" % (info.basename, skillName) )
+            es.unload("%s/skills/%s" % (info.basename, skill) )
         skills.clearList()
     
     def loadallskills(self):
@@ -2253,7 +2257,7 @@ def buildSkillMenu(userid):
             skillMenu.addoption(skill.name, skill.name + " => %s [COST %s]" % (level + 1, cost), bool(player['credits'] >= cost) )
     skillMenu.send(userid)
     
-def checkSkillForUpgrading(userid, choice, popupid):
+def checkSkillForUpgrading(userid, choice, popupid, resend = True, useCredits = True):
     """
     This method is a return function from a popup return. It validates the user's
     choice, and if correct, deduct the credits and increment the skill
@@ -2266,9 +2270,10 @@ def checkSkillForUpgrading(userid, choice, popupid):
     skill  = skills[choice]
     creditsRequired = player[skill.name] * int(skill.creditIncrement) + int(skill.startCredit)
     
-    if player['credits'] >= creditsRequired:
+    if player['credits'] >= creditsRequired or useCredits is not True:
         """ Remove the credits and increment the skill """
-        player['credits'] -= creditsRequired
+        if useCredits is True:
+            player['credits'] -= creditsRequired
         player[skill.name] += 1
         
         """ If the skill upgrade sound is not blank, emmit it from the player """
@@ -2299,8 +2304,9 @@ def checkSkillForUpgrading(userid, choice, popupid):
         
         tell(userid, 'insufficient credits', tokens)
     
-    """ Rebuild the skill menu """    
-    buildSkillMenu(userid)
+    """ Rebuild the skill menu """
+    if resend is True:
+        buildSkillMenu(userid)
         
 def buildSellMenu(userid):
     """
@@ -2321,7 +2327,7 @@ def buildSellMenu(userid):
             sellMenu.addoption(None, skill.name + " [NEED LEVEL]", False)
     sellMenu.send(userid)
 
-def checkSkillForSelling(userid, choice, popupid):
+def checkSkillForSelling(userid, choice, popupid, resend=True, gainCredits = True):
     """
     This method is a return function from a popup return. It validates the user's
     choice, and if correct, increments the credits and decrements the skill
@@ -2334,10 +2340,11 @@ def checkSkillForSelling(userid, choice, popupid):
     skill  = skills[choice]
     level  = player[skill.name]
     creditsGained = int( ( (level - 1) * int(skill.creditIncrement) + int(skill.startCredit) ) * float(sellPercentage) / 100.)
-    if creditsGained > 0:
+    if creditsGained > 0 or gainCredits is not True:
         """ Only do the purchase if credits are obtained """
         player[skill.name] -= 1
-        player['credits']  += creditsGained
+        if gainCredits is True:
+            player['credits']  += creditsGained
         
         """ If the skill downgrade sound is not blank, emmit it from the player """
         if str(skillDowngradeSound):
@@ -2356,8 +2363,9 @@ def checkSkillForSelling(userid, choice, popupid):
         es.event("setint",     "sourcerpg_skilldowngrade", "gained", creditsGained)
         es.event("setstring",  "sourcerpg_skilldowngrade", "skill", skill.name)
         es.event("fire",       "sourcerpg_skilldowngrade")
-            
-    buildSellMenu(userid)
+        
+    if resend is True:
+        buildSellMenu(userid)
     
 def buildStatsMenu(userid, playerToTest):
     """
