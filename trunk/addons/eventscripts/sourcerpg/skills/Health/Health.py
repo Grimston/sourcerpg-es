@@ -18,6 +18,8 @@ creditStart     = config.cvar("srpg_healthCreditsStart",     15, "The starting a
 creditIncrement = config.cvar("srpg_healthCreditsIncrement", 10, "How much the credits increment after the first level")
 healthIncrement = config.cvar("srpg_healthIncrements",       25, "How much additional health each level acquires")
 
+baseHealth = {}
+
 def load():
     """ 
     This method executes when the script loads. Register the skill
@@ -46,6 +48,7 @@ def player_spawn(event_var):
                 Delay the function so it's not overwritten by resetting the
                 defaults in sourcerpg
                 """
+                gamethread.delayed(0, getBaseHealth, userid)
                 gamethread.delayed(0, setHealth, userid)
         
 def sourcerpg_skillupgrade(event_var):
@@ -68,6 +71,15 @@ def sourcerpg_skilldowngrade(event_var):
     if event_var['skill'] == skillName:
         setHealth(event_var['userid']) 
         
+def getBaseHealth(userid):
+    """
+    A function to store the base health so we can refer back to this without
+    it growing exponentially
+
+    @PARAM userid - the user who to get the base health for
+    """
+    baseHealth[userid] = sourcerpg.players[userid]['maxHealth']
+
 def setHealth(userid):
     """
     A function which alters the maximum and current health of a player to
@@ -77,6 +89,6 @@ def setHealth(userid):
     """
     player = sourcerpg.players[userid]
     level  = player[skillName]
-    level  = level * int(healthIncrement) + player['maxHealth']
+    level  = level * int(healthIncrement) + baseHealth[userid]
     player['maxHealth'] = level
     es.setplayerprop(userid, 'CBasePlayer.m_iHealth', player['maxHealth'])

@@ -18,6 +18,8 @@ creditStart     = config.cvar("srpg_speedCreditsStart",     20, "The starting am
 creditIncrement = config.cvar("srpg_speedCreditsIncrement", 25, "How much the credits increment after the first level")
 maxSpeed        = config.cvar("srpg_speedMaximum",         1.5, "The maximum speed a player can go with the speed ability")
 
+baseSpeed = {}
+
 def load():
     """ 
     This method executes when the script loads. Register the skill
@@ -43,6 +45,7 @@ def player_spawn(event_var):
         player = sourcerpg.players[userid]
         if player is not None:
             if player[skillName]:
+                gamethread.delayed(0, getBaseSpeed, userid)
                 gamethread.delayed(0, setSpeed, userid)
         
 def sourcerpg_skillupgrade(event_var):
@@ -65,6 +68,15 @@ def sourcerpg_skilldowngrade(event_var):
     if event_var['skill'] == skillName:
         setSpeed(event_var['userid'])
         
+def getBaseSpeed(userid):
+    """
+    A function to store the base speed so we can refer back to this without
+    it growing exponentially
+
+    @PARAM userid - the user who to get the base health for
+    """
+    baseSpeed[userid] = sourcerpg.players[userid]['maxSpeed']
+
 def setSpeed(userid):
     """
     A function which alters the maximum and current speed of a player to

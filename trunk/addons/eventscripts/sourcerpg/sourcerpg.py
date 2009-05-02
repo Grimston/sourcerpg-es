@@ -1313,7 +1313,7 @@ class CommandsDatabase(object):
                 tokens['nextxp'] = (self.player['level'] - 1) * int(xpIncrement) + int(startXp)
                 
                 for userid in filter( lambda x: not es.isbot(x), es.getUseridList() ):
-                    tell(self.userid, 'level gained global', tokens)
+                    tell(userid, 'level gained global', tokens)
                 
             if str(levelupSound):
                 es.emitsound('player', self.userid, str(levelupSound), 0.7, 0.5 )
@@ -1896,7 +1896,7 @@ def es_map_start(event_var):
         query = "SELECT name,level,xp,credits FROM playerstats WHERE steamid IN ("
         for steamid in ranks.getPlayerSlice(0, 10):
             query += "'%s', " % steamid
-        query = query[:-2] + ")"
+        query = query[:-2] + ") ORDER BY level DESC,xp DESC"
 
         database.execute(query)
         results = database.cursor.fetchall()

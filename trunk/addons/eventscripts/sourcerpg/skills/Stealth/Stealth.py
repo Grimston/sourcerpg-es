@@ -19,6 +19,8 @@ creditStart     = config.cvar("srpg_stealthCreditsStart",      15, "The starting
 creditIncrement = config.cvar("srpg_stealthCreditsIncrement",  10, "How much the credits increment after the first level")
 minStealth      = config.cvar("srpg_minimumStealthPercentage", 20, "The minimum percentage of stealth a player receives at the maximum level")
 
+baseStealth = {}
+
 def load():
     """ 
     This method executes when the script loads. Register the skill
@@ -47,6 +49,7 @@ def player_spawn(event_var):
             level  = player[skillName]
             if level:
                 """ If the level is greater than 0 """
+                gamethread.delayed(0, getBaseStealth, userid)
                 gamethread.delayed(0, setStealth, userid)
             
 def sourcerpg_skillupgrade(event_var):
@@ -69,6 +72,15 @@ def sourcerpg_skilldowngrade(event_var):
     if event_var['skill'] == skillName:
         setStealth(event_var['userid'])
             
+def getBaseStealth(userid):
+    """
+    A function to store the base stealth so we can refer back to this without
+    it growing exponentially
+
+    @PARAM userid - the user who to get the base health for
+    """
+    baseStealth[userid] = sourcerpg.players[userid]['minStealth']
+
 def setStealth(userid):
     """
     This function assigns a new stealth value to a player dependant on their
@@ -79,9 +91,9 @@ def setStealth(userid):
     """
     player = sourcerpg.players[userid]
     level  = player[skillName]
-    percentage = int(player['minStealth'] * float(minStealth) / 100.)
-    eachSegment = int( (player['minStealth'] - percentage) / maxLevel )
-    eachSegment = player['minStealth'] - (level * eachSegment)
+    percentage = int(baseStealth[userid] * float(minStealth) / 100.)
+    eachSegment = int( (baseStealth[userid] - percentage) / maxLevel )
+    eachSegment = baseStealth[userid] - (level * eachSegment)
     if eachSegment < 0:
         eachSegment = 0
     elif eachSegment > 255:
