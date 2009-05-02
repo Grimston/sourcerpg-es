@@ -49,18 +49,20 @@ def player_hurt(event_var):
             """ The player has at least level 1 in this skill """
             if event_var['es_userteam'] <> event_var['es_attackerteam']:
                 """ It was not a team kill """
-                if event_var['weapon'] in weaponlib.getWeaponNameList('#secondary'):
-                    if not player['slowed']:
-                        """ Ensure that they're only slowed once """
-                        player['slowed'] = True
-                        speed  = player['maxSpeed']
-                        speed /= 2.0
-                        player['maxSpeed'] = speed
-                        player = playerlib.getPlayer(userid)
-                        player.speed = speed
-                        red, green, blue, alpha = player.getColor()
-                        player.setColor(0, 0, 255, alpha)
-                        gamethread.delayedname('sourcerpg_slow_user%s' % userid, float(freezeTime) * level, speedUp, userid)
+                if event_var['weapon'] in map(lambda x: x.split('_')[-1], weaponlib.getWeaponNameList('#secondary') ):
+                    victim = sourcerpg.players[userid]
+                    if not victim['slowed']:
+                        """ If they're frozen, there's no point (i,e Ice Stab) """
+                        playerlibInstance = playerlib.getPlayer(userid)
+                        if not playerlibInstance.getFreeze():
+                            """ Ensure that they're only slowed once """
+                            victim['slowed'] = True
+                            speed  = victim['maxSpeed']
+                            speed /= 2.0
+                            victim['maxSpeed'] = speed
+                            playerlibInstance.speed = speed
+                            playerlibInstance.setColor(0, 0, 255)
+                            gamethread.delayedname(float(freezeTime) * level, 'sourcerpg_slow_user%s' % userid, speedUp, userid)
                     
 def speedUp(userid):
     """
@@ -78,16 +80,21 @@ def speedUp(userid):
     playerlibPlayer.speed = speed
     
     """ Assign their color back to normal """
-    red, green, blue, alpha = player.getColor()
-    playerlibPlayer.setColor(255, 255, blue, alpha)
+    playerlibPlayer.setColor(255, 255, 255)
                 
 def player_spawn(event_var):
     """
     Occurs when a player spawns. Assing a key to their dictionary value so we
-    can hold if they're currently slowed or not 
+    can hold if they're currently slowed or not
+
+    @PARAM event_var - an automatically passed event instance
     """
     userid = event_var['userid']
     if not es.getplayerprop(userid, 'CBasePlayer.pl.deadflag'):
+        """ If they're color is not default, force it """
+        playerlibInstance = playerlib.getPlayer(userid)
+        if playerlibInstance.getColor()[0] != 255:
+            playerlib.getPlayer(userid).setColor(255, 255, 255)
         player = sourcerpg.players[userid]
         if player is not None:
             player['slowed'] = False

@@ -3,6 +3,8 @@ import repeat
 import gamethread
 import playerlib
 
+import random
+
 from sourcerpg import sourcerpg
 
 skillName = "Smog Grenade"
@@ -57,7 +59,7 @@ class SmokeGrenadeManager(object):
         @PARAM userid - the id of the owner of the smoke grenade
         """
         self.entities[entity] = int(userid)
-        gamethread.delayedname(18, "sourcerpg_smokegrenade_entity%s" % entit, self.removeEntity, entity)
+        gamethread.delayedname(18, "sourcerpg_smokegrenade_entity%s" % entity, self.removeEntity, entity)
 
     def removeEntity(self, entity):
         """
@@ -105,7 +107,7 @@ class SmokeGrenadeManager(object):
         smokeList = es.createentitylist("smokegrenade_projectile")
         for entity in self.entities:
             if entity in smokeList:
-                x, y, z = es.getindexprop(entity, 'CBaseEntity.m_vecOrigin').split(",")
+                x, y, z = map(float, es.getindexprop(entity, 'CBaseEntity.m_vecOrigin').split(","))
                 player  = self.entities[entity]
                 level   = sourcerpg.players[player][skillName]
                 for loopPlayer in playerlib.getPlayerList('#t,#alive' if es.getplayerteam(player) == 3 else '#ct,#alive'):

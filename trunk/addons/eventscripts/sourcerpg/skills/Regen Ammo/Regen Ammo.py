@@ -116,7 +116,8 @@ class RegenAmmoObject(object):
         @PARAM delay - the time (in seconds) to delay each repeat
         """
         if not self.isRunning():
-            self.repeat = repeat.create("sourcerpg_regenammo_user%s" % self.userid, self.addAmmo, amount)
+            if self.repeat is None:
+                self.repeat = repeat.create("sourcerpg_regenammo_user%s" % self.userid, self.addAmmo, amount)
             self.repeat.start(delay, 0)
         
     def stop(self):

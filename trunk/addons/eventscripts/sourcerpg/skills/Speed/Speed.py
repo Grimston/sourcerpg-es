@@ -72,18 +72,14 @@ def setSpeed(userid):
     
     @PARAM userid - the userid of which to set the speed of
     """
-    print "Setting speed: %s" % userid
     player = sourcerpg.players[userid]
-    print "Player: %s" %  player
+    if player is None:
+        return
     level  = player[skillName]
     if level > maxLevel:
         level = int(maxLevel)
-    print "Level: %s" % level
-    print "Max level: %s" % maxLevel
     if level:
         eachSegment = (float(maxSpeed) - player['maxSpeed']) / maxLevel
-        print "Each segment: %s" % eachSegment
         level = level * eachSegment + player['maxSpeed']
-        print "Speed: %s" % level
         player['maxSpeed'] = level
         es.setplayerprop(userid, 'CBasePlayer.localdata.m_flLaggedMovementValue', level)

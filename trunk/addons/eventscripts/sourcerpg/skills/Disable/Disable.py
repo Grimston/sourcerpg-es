@@ -40,7 +40,7 @@ def player_hurt(event_var):
     userid   = event_var['userid']
     attacker = event_var['attacker']
     player   = sourcerpg.players[attacker]
-    if attacker and userid != attacker:
+    if attacker and attacker.isdigit() and int(attacker) > 0 and userid != attacker:
         if event_var['es_userteam'] != event_var['es_attackerteam']:
             level = player[skillName]
             if level:

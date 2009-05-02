@@ -80,12 +80,13 @@ def player_spawn(event_var):
     
 def player_disconnect(event_var):
     """
-    An event which occurs when a player disconnects from the game. Just run
-    the player_death event since we wish to do the same task.
+    An event which occurs when a player disconnects from the game. Cancel the
+    delay.
     
     @PARAM event_var - an automatically passed event instance
     """
-    player_death(event_var)
+    userid = event_var['userid']
+    gamethread.cancelDelayed('sourcerpg_adrenaline_user%s' % userid)
             
 def reset(userid, speed):
     """

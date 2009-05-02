@@ -427,7 +427,8 @@ class PopupCallbacks(object):
             skill = sourcerpg.skills[choice]
             if level < skill.maxLevel:
                 sourcerpg.database.increment('playerskills', 'steamid', target, {choice:1})
-        self.chosenPlayer(userid, target, 'sourcerpg_admin')
+        #self.chosenPlayer(userid, target, 'sourcerpg_admin')
+        self.buildPlayerSkillsMenu("sourcerpg_upgrade_player%s" % target, target, self.upgradeSkill, "sourcerpg_player%s" % target, True).send(userid)
     
     def downgradeSkill(self, userid, choice, popupid):
         """
@@ -445,7 +446,8 @@ class PopupCallbacks(object):
             level = sourcerpg.database.getSkillLevel(target, choice)
             if level > 0:
                 sourcerpg.database.increment('playerskills', 'steamid', target, {choice:-1})
-        self.chosenPlayer(userid, target, 'sourcerpg_admin')
+        #self.chosenPlayer(userid, target, 'sourcerpg_admin')
+        self.buildPlayerSkillsMenu("sourcerpg_downgrade_player%s" % target, target, self.downgradeSkill, "sourcerpg_player%s" % target, False).send(userid)
         
     @staticmethod
     def addXp(userid, choice, popupid):
@@ -494,6 +496,7 @@ class PopupCallbacks(object):
             tell(userid, 'add xp', tokens)
             popuplib.send(popupid, userid)
         else:
+            tell(userid, 'escape')
             es.escinputbox(30, userid, '=== %s Add Xp ===' % sourcerpg.prefix, 
                 'Enter the amount' , 'rpgaddxp" "%s' % target)
         
@@ -526,6 +529,7 @@ class PopupCallbacks(object):
             tell(userid, 'add levels', tokens)
             popuplib.send(popupid, userid)
         else:
+            tell(userid, 'escape')
             es.escinputbox(30, userid, '=== %s Add Xp ===' % sourcerpg.prefix,
                 'Enter the amount' , 'rpgaddlevels" "%s' % target)
         
@@ -558,6 +562,7 @@ class PopupCallbacks(object):
             tell(userid, 'add credits', tokens)
             popuplib.send(popupid, userid)
         else:
+            tell(userid, 'escape')
             es.escinputbox(30, userid, '=== %s Add Xp ===' % sourcerpg.prefix,
                 'Enter the amount' , 'rpgaddcredits" "%s' % target)
     

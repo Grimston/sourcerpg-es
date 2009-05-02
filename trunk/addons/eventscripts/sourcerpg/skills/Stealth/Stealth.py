@@ -79,7 +79,8 @@ def setStealth(userid):
     """
     player = sourcerpg.players[userid]
     level  = player[skillName]
-    eachSegment = int(255 / 100. * float(minStealth) )
+    percentage = int(player['minStealth'] * float(minStealth) / 100.)
+    eachSegment = int( (player['minStealth'] - percentage) / maxLevel )
     eachSegment = player['minStealth'] - (level * eachSegment)
     if eachSegment < 0:
         eachSegment = 0

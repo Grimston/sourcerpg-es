@@ -84,7 +84,12 @@ def player_spawn(event_var):
                 if level >= 2:
                     """ Player has at least level 2, give them back their secondary """
                     if player["secondary"]:
-                        es.server.queuecmd('es_xgive %s %s' % (userid, player["secondary"]) )
+                        handle = es.getplayerhandle(userid)
+                        for index in weaponlib.getIndexList({2 : "weapon_glock", 3 : "weapon_usp"}[es.getplayerteam(userid)]):
+                            if es.getindexprop(index, 'CBaseEntity.m_hOwnerEntity') == handle:
+                                es.server.queuecmd('es_xremove %s' % index)
+                                break
+                        gamethread.delayed(0, es.server.queuecmd, ('es_xgive %s %s' % (userid, player["secondary"]) ) )
 
                 if level >= 3:
                     """ Player has at least level 3, give them back their primary """
@@ -114,23 +119,26 @@ def item_pickup(event_var):
 
     @PARAM event_var - an automatically passed event instance
     """
-    weapon = event_var['item']
+    weapon = weaponlib.getWeapon(event_var['item'])
+    if weapon is None:
+        """ The item picked up is not a valid weapon, return early """
+        return
+    weapon = weapon.name # format the weapon name
     userid = event_var['userid']
     player = sourcerpg.players[userid]
     if player is not None:
         level  = player[skillName]
         if level:
             """ Player is at least level 1 in this skill """
-            if weapon.startswith("weapon_"):
-                """ The item picked up was a weapon """
-                if weapon in weaponlib.getWeaponNameList('#primary') and level >= 3:
-                    player['primary'] = weapon
+            if weapon in weaponlib.getWeaponNameList('#primary') and level >= 3:
+                player['primary'] = weapon
 
-                elif weapon in weaponlib.getWeaponNameList('#secondary') and level >= 2:
+            elif weapon in weaponlib.getWeaponNameList('#secondary') and level >= 2:
+                if weapon != {2 : "weapon_glock", 3 : "weapon_usp"}[es.getplayerteam(userid)]:
                     player['secondary'] = weapon
 
-                elif weapon in weaponlib.getWeaponNameList('#grenade'):
-                    player[weapon] += 1
+            elif weapon in weaponlib.getWeaponNameList('#grenade'):
+                player[weapon] += 1
 
 def flashbang_detonate(event_var):
     """
@@ -185,7 +193,7 @@ def clientFilter(userid, args):
         level  = player[skillName]
         if level:
             """ The player has recover weapons, get their active weapn and remove it """
-            weapon = playerlib.getPlayer(userid).get("weapon")
+            weapon = weaponlib.getWeapon(playerlib.getPlayer(userid).get("weapon")).name # return formated weapon
             
             if level >= 3 and weapon in weaponlib.getWeaponNameList("#primary"):
                 player['primary'] = None

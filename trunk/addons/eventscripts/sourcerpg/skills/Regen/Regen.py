@@ -114,7 +114,8 @@ class RegenObject(object):
         @PARAM delay - the time (in seconds) to delay each heal
         """
         if not self.isRunning():
-            self.repeat = repeat.create("sourcerpg_regen_user%s" % self.userid, self.heal, amount)
+            if self.repeat is None:
+                self.repeat = repeat.create("sourcerpg_regen_user%s" % self.userid, self.heal, amount)
             self.repeat.start(delay, 0)
         
     def stopRegen(self):

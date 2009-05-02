@@ -1066,6 +1066,7 @@ class PlayerObject(object):
         All the default virtual information about a player which is not database
         related should be set here such as maximum speed and maximum health
         """
+        print "::: I ARE RESETTING ATTRIBUTES :::"
         self.playerAttributes['maxHealth']  = 100
         self.playerAttributes['maxSpeed']   = 1.0
         self.playerAttributes['maxGravity'] = 1.0
@@ -1996,6 +1997,11 @@ def round_end(event_var):
     if not currentTurboMode:
         if str(saveType).lower() == "round end":
             saveDatabase()
+    for userid in filter(lambda x: not es.getplayerprop(x,'CBasePlayer.pl.deadflag'),
+                            es.getUseridList() ):
+        player = players[userid]
+        if player is not None:
+            player.resetPlayerDefaultAttributes()
             
 def player_spawn(event_var):
     """
@@ -2112,7 +2118,7 @@ def bomb_planted(event_var):
     @PARAM event_var - an automatically passed argument as the event instance.
     """
     if isFairForTeam(event_var['es_userteam']) or not int(unfairAdvantage):
-        if es.isbot(event_var['userid']) and not int(botGetXpOnEvents):
+        if es.isbot(event_var['userid']) and not int(botsGetXpOnEvents):
             return
         player = players[event_var['userid']]
         player.addXp( int(bombPlantXp) * player['level'], 'planting the bomb' )
@@ -2124,7 +2130,7 @@ def bomb_exploded(event_var):
     @PARAM event_var - an automatically passed argument as the event instance.
     """
     if isFairForTeam(event_var['es_userteam']) or not int(unfairAdvantage):
-        if es.isbot(event_var['userid']) and not int(botGetXpOnEvents):
+        if es.isbot(event_var['userid']) and not int(botsGetXpOnEvents):
             return
         player = players[event_var['userid']]
         player.addXp( int(bombExplodeXp) * player['level'], 'allowing the bomb to explode' )
@@ -2136,7 +2142,7 @@ def bomb_defused(event_var):
     @PARAM event_var - an automatically passed argument as the event instance.
     """
     if isFairForTeam(event_var['es_userteam']) or not int(unfairAdvantage):
-        if es.isbot(event_var['userid']) and not int(botGetXpOnEvents):
+        if es.isbot(event_var['userid']) and not int(botsGetXpOnEvents):
             return
         player = players[event_var['userid']]
         player.addXp( int(bombDefuseXp) * player['level'], 'defusing the bomb' )
@@ -2148,7 +2154,7 @@ def hostage_follows(event_var):
     @PARAM event_var - an automatically passed argument as the event instance.
     """
     if isFairForTeam(event_var['es_userteam']) or not int(unfairAdvantage):
-        if es.isbot(event_var['userid']) and not int(botGetXpOnEvents):
+        if es.isbot(event_var['userid']) and not int(botsGetXpOnEvents):
             return
         player = players[event_var['userid']]
         player.addXp( int(hostageFollowsXp) * player['level'], 'making a hostage follow you' )
@@ -2160,7 +2166,7 @@ def hostage_rescued(event_var):
     @PARAM event_var - an automatically passed argument as the event instance.
     """
     if isFairForTeam(event_var['es_userteam']) or not int(unfairAdvantage):
-        if es.isbot(event_var['userid']) and not int(botGetXpOnEvents):
+        if es.isbot(event_var['userid']) and not int(botsGetXpOnEvents):
             return
         player = players[event_var['userid']]
         player.addXp( int(hostageRescueXp) * player['level'], 'rescuing a hostage' )

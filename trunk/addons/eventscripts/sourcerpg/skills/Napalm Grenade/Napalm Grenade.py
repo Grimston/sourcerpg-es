@@ -54,7 +54,7 @@ def player_hurt(event_var):
                         """ Was a kill with a grenade """
                         player = playerlib.getPlayer(userid)
                         player.burn()
-                        gamethread.delayedname('sourcerpg_burn_user%s' % userid, 1.0 * level, player.extinguish)
+                        gamethread.delayedname(1.0 * level, 'sourcerpg_burn_user%s' % userid, player.extinguish)
                 
 def weapon_fire(event_var):
     """
@@ -67,7 +67,7 @@ def weapon_fire(event_var):
         player = sourcerpg.players[userid]
         if player is not None:
             if player[skillName]:
-                es.server.queuecmd('es_xfire %s hegrenade_projectile ignite' % userid)
+                gamethread.delayed(0.1, es.server.queuecmd, 'es_xfire %s hegrenade_projectile ignite' % userid) # delay a tick so the entity is created
 
 def player_death(event_var):
     """
