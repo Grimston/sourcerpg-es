@@ -170,6 +170,10 @@ def load():
     This method executes when the script loads. Register the skill
     """
     sourcerpg.skills.addSkill( skillName, maxLevel, creditStart, creditIncrement )
+
+    """ Any active players get added to the list when this skill loads """
+    for player in es.getUseridList():
+        player_spawn( {'userid' : player} )
     
 def unload():
     """

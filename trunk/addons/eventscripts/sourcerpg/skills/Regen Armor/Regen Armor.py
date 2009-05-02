@@ -1,5 +1,6 @@
 import es
 import repeat
+import gamethread
 
 from sourcerpg import sourcerpg
 
@@ -150,7 +151,7 @@ class RegenObject(object):
         player = sourcerpg.players[self.userid]
         if currentArmor > player['maxArmor']:
             currentArmor = player['maxArmor']
-            self.stopRegen()
+            gamethread.delayed(0, self.stopRegen )
         self.setArmor(self.userid, currentArmor)
         
     @staticmethod

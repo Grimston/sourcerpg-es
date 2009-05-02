@@ -1,5 +1,6 @@
 import es
 import repeat
+import gamethread
 
 from sourcerpg import sourcerpg
 
@@ -150,9 +151,9 @@ class RegenObject(object):
         player = sourcerpg.players[self.userid]
         if currentHealth > player['maxHealth']:
             currentHealth = player['maxHealth']
-            self.stopRegen()
+            gamethread.delayed(0, self.stopRegen)
         self.setHealth(self.userid, currentHealth)
-        
+
     @staticmethod
     def getHealth(userid):
         """

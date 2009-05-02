@@ -1,13 +1,3 @@
-# FOR NOTES CTRL + F ~NOTE
-
-# ~NOTE: TODO
-#   Finish of all the skills (X)
-#   Make admin menu (X)
-#   Make addon manager / object classes (X)
-#   Make converter
-#   Make interval saving thing (X)
-#   Make the skills load in order (X)
-
 # SourceRPG release 2.0.0 by Steven Hartin
 # ./addons/eventscripts/sourcerpg/sourcerpg.py
 
@@ -41,7 +31,7 @@ psyco.full()
 # Set the addon info data
 info = es.AddonInfo()
 info.name     = 'SourceRPG'
-info.version  = '2.0.0'
+info.version  = '2.0.011'
 info.basename = 'sourcerpg'
 info.author   = 'Freddukes AKA Pro Noob'
 info.url      = 'http://addons.eventscripts.com/addons/view/%s' % info.basename
@@ -507,7 +497,6 @@ class SQLiteManager(object):
                     " WHERE " + primaryKeyName + "='" + primaryKeyValue + "'"
                     
         """ Execute the SQL statement and fetch the result """
-        print "Query: %s" % query
         self.cursor.execute(query)
         return self.fetchone()
         
@@ -1066,7 +1055,6 @@ class PlayerObject(object):
         All the default virtual information about a player which is not database
         related should be set here such as maximum speed and maximum health
         """
-        print "::: I ARE RESETTING ATTRIBUTES :::"
         self.playerAttributes['maxHealth']  = 100
         self.playerAttributes['maxSpeed']   = 1.0
         self.playerAttributes['maxGravity'] = 1.0
@@ -1301,7 +1289,7 @@ class CommandsDatabase(object):
                         Iterate through all loaded skills and if the bot
                         can afford the skill, append it to the possible choices
                         """
-                        if credits >= skill.level * skill.creditIncrement + skill.startCredit:
+                        if credits >= self.player[skill.name] * skill.creditIncrement + skill.startCredit:
                             if self.player[skill.name] < skill.maxLevel:
                                 possibleChoices.append(skill.name)
                     if not possibleChoices:
@@ -1315,7 +1303,7 @@ class CommandsDatabase(object):
                     Finally call the checkSkillForUpgrading function passing
                     the arguments manually rather than letting a popup do it
                     """
-                    checkSkillForUpgrading(self.userid, random.choice(possibleChoices), None )
+                    checkSkillForUpgrading(self.userid, random.choice(possibleChoices), None, False )
             
             if int(levelUp):
                 tokens = {}
@@ -2261,6 +2249,7 @@ def buildSkillMenu(userid):
         else:
             cost = level * int(skill.creditIncrement) + int(skill.startCredit)
             skillMenu.addoption(skill.name, skill.name + " => %s [COST %s]" % (level + 1, cost), bool(player['credits'] >= cost) )
+    skillMenu.c_exitformat = "0. Close"
     skillMenu.send(userid)
     
 def checkSkillForUpgrading(userid, choice, popupid, resend = True, useCredits = True):
@@ -2331,6 +2320,7 @@ def buildSellMenu(userid):
             sellMenu.addoption(skill.name, skill.name + " => %s [GAIN %s]" % (level - 1, int( ( (level - 1) * int(skill.creditIncrement) + int(skill.startCredit) ) * float(sellPercentage) / 100.) ) )
         else:
             sellMenu.addoption(None, skill.name + " [NEED LEVEL]", False)
+    sellMenu.c_exitformat = "0. Close"
     sellMenu.send(userid)
 
 def checkSkillForSelling(userid, choice, popupid, resend=True, gainCredits = True):
