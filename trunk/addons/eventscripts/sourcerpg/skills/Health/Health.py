@@ -49,7 +49,7 @@ def player_spawn(event_var):
                 defaults in sourcerpg
                 """
                 gamethread.delayed(0, getBaseHealth, userid)
-                gamethread.delayed(0, setHealth, userid)
+                gamethread.delayed(gamethread.delayed, (0, setHealth, userid) )
         
 def sourcerpg_skillupgrade(event_var):
     """

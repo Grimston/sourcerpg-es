@@ -46,7 +46,8 @@ def player_spawn(event_var):
                 Delay the function so it's not overwritten by resetting the
                 defaults in sourcerpg
                 """
-                gamethread.delayed(0, setArmor, userid)
+                gamethread.delayed(0, getBaseArmor, userid)
+                gamethread.delayed(0, gamethread.delayed, (0, setArmor, userid) )
         
 def sourcerpg_skillupgrade(event_var):
     """
@@ -68,6 +69,15 @@ def sourcerpg_skilldowngrade(event_var):
     if event_var['skill'] == skillName:
         setArmor(event_var['userid']) 
         
+def getBaseArmor(userid):
+    """
+    A function to store the base armor so we can refer back to this without
+    it growing exponentially
+
+    @PARAM userid - the user who to get the base armor for
+    """
+    baseArmor[userid] = sourcerpg.players[userid]['maxArmor']
+
 def setArmor(userid):
     """
     A function which alters the maximum and current armor of a player to
@@ -76,7 +86,7 @@ def setArmor(userid):
     @PARAM userid - the userid of which to set the armor of
     """
     player = sourcerpg.players[userid]
-    armor  = player['maxArmor']
+    armor  = baseArmor[userid]
     level  = player[skillName]
     level  = level * int(armorIncrement) + armor
     player['maxArmor'] = level

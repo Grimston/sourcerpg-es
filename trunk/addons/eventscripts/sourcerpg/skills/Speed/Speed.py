@@ -46,7 +46,7 @@ def player_spawn(event_var):
         if player is not None:
             if player[skillName]:
                 gamethread.delayed(0, getBaseSpeed, userid)
-                gamethread.delayed(0, setSpeed, userid)
+                gamethread.delayed(0, gamethread.delayed, (0, setSpeed, userid) )
         
 def sourcerpg_skillupgrade(event_var):
     """
