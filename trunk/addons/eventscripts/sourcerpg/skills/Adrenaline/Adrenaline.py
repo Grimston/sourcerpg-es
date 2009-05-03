@@ -43,7 +43,7 @@ def player_hurt(event_var):
     level  = player[skillName]
     if level:
         """ Player is at least level 1 in this skill """
-        if not player['adrenalined']:
+        if not player['adrenalined'] and not player['slowed']:
             """ Player is not already in the adrenaline mode """
             player['adrenalined'] = True
             amount = level / 10.
