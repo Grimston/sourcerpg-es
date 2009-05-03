@@ -89,8 +89,6 @@ def getBaseHealth(userid):
 
     @PARAM userid - the user who to get the base health for
     """
-    es.msg("Health.py - getting base health: %s" % es.getplayername(userid))
-    es.msg("New base health: %s" % sourcerpg.players[userid]['maxHealth'])
     baseHealth[userid] = sourcerpg.players[userid]['maxHealth']
 
 def setHealth(userid):
@@ -100,11 +98,8 @@ def setHealth(userid):
     
     @PARAM userid - the userid of which to set the health of
     """
-    es.msg("Health.py - setting health: %s" % es.getplayername(userid))
     player = sourcerpg.players[userid]
     level  = player[skillName]
-    es.msg("Base health: %s" % baseHealth[userid])
     level  = level * int(healthIncrement) + baseHealth[userid]
-    es.msg("New health: %s" % level)
     player['maxHealth'] = level
     es.setplayerprop(userid, 'CBasePlayer.m_iHealth', player['maxHealth'])

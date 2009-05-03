@@ -316,6 +316,12 @@ class PopupCallbacks(object):
                 userid = es.getuserid(target)
                 for skill in sourcerpg.skills:
                     sourcerpg.players[userid][skill.name] = skill.maxLevel
+                    es.event("initialize", "sourcerpg_skillupgrade")
+                    es.event("setint",     "sourcerpg_skillupgrade", "userid", userid)
+                    es.event("setint",     "sourcerpg_skillupgrade", "level", skill.maxLevel)
+                    es.event("setint",     "sourcerpg_skillupgrade", "cost",  0)
+                    es.event("setstring",  "sourcerpg_skillupgrade", "skill", skill.name)
+                    es.event("fire",       "sourcerpg_skillupgrade")
             else:
                 """
                 The player is offline so ensure that all the new values are

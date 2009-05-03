@@ -1055,7 +1055,6 @@ class PlayerObject(object):
         All the default virtual information about a player which is not database
         related should be set here such as maximum speed and maximum health
         """
-        es.msg("PlayerObject::resetPlayerDefaultAttributes() <==> %s" % self.name)
         self.playerAttributes['maxHealth']  = 100
         self.playerAttributes['maxSpeed']   = 1.0
         self.playerAttributes['maxGravity'] = 1.0
@@ -1962,6 +1961,7 @@ def player_disconnect(event_var):
     @PARAM event_var - an automatically passed event instance
     """
     userid = event_var['userid']
+    gamethread.cancelDelayed('sourcerpg_reset_%s' % userid)
     if userid in players:
         players[userid]['lastconnected'] = time.time()
         del players[userid] # call's the destructor
@@ -1986,11 +1986,10 @@ def round_end(event_var):
     if not currentTurboMode:
         if str(saveType).lower() == "round end":
             saveDatabase()
-    for userid in filter(lambda x: not es.getplayerprop(x,'CBasePlayer.pl.deadflag'),
-                            es.getUseridList() ):
+    for userid in es.getUseridList():
         player = players[userid]
         if player is not None:
-            player.resetPlayerDefaultAttributes()
+            gamethread.delayedname(4.8, 'sourcerpg_reset_%s' % player, player.resetPlayerDefaultAttributes)
             
 def player_spawn(event_var):
     """
