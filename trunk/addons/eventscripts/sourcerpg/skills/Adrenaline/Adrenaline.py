@@ -1,6 +1,7 @@
 import es
 import gamethread
 import playerlib
+import weaponlib
 
 from sourcerpg import sourcerpg
 
