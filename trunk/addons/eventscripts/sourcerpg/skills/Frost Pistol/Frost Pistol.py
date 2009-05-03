@@ -62,9 +62,9 @@ def player_hurt(event_var):
                             victim['maxSpeed'] = speed
                             playerlibInstance.speed = speed
                             playerlibInstance.setColor(0, 0, 255)
-                            gamethread.delayedname(float(freezeTime) * level, 'sourcerpg_slow_user%s' % userid, speedUp, userid)
+                            gamethread.delayedname(float(freezeTime) * level, 'sourcerpg_slow_user%s' % userid, speedUp, (userid, speed * 2.0) )
                     
-def speedUp(userid):
+def speedUp(userid, speed):
     """
     A function to assign a player's speed and color back to normal after being
     slowed down by a frost pistol.
@@ -72,9 +72,7 @@ def speedUp(userid):
     @PARAM userid - the player who to speed up again.
     """
     player = sourcerpg.players[userid]
-    player['slowed'] = False
-    speed  = player['maxSpeed']
-    speed *= 2.
+    player['slowed']   = False
     player['maxSpeed'] = speed
     playerlibPlayer = playerlib.getPlayer(userid)
     playerlibPlayer.speed = speed
