@@ -45,6 +45,24 @@ def player_hurt(event_var):
         """ Player is at least level 1 in this skill """
         if not player['adrenalined'] and not player['slowed']:
             """ Player is not already in the adrenaline mode """
+
+            if "Frost Pistol" in sourcerpg.skills:
+                """ If frost pistol is loaded check if the attack was a frost pistol attack """
+                attacker = event_var['attacker']
+                if attacker and attacker.isdigit() and int(attacker) > 1:
+                    """ If the attacker is a valid attacker """
+                    if event_var['es_attackerteam'] != event_var['es_userteam']:
+                        """ If the attacker is not on the user's team """
+                        if sourcerpg.players[attacker]['Frost Pistol']:
+                            """ If the attacker has a frost pistol level """
+                            weapon = event_var['weapon']
+                            weapon = weaponlib.getWeapon(weapon)
+                            if weapon is None:
+                                return
+                            weapon = weapon.name # format the weapon name
+                            if weapon in weaponlib.getWeaponNameList("#secondary"):
+                                """ The attack was a frost pistol attack, return early """
+                                return
             player['adrenalined'] = True
             amount = level / 10.
             speed  = player['maxSpeed'] + amount
