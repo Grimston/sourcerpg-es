@@ -90,7 +90,7 @@ def getBaseHealth(userid):
     @PARAM userid - the user who to get the base health for
     """
     es.msg("Health.py - getting base health: %s" % es.getplayername(userid))
-    es.msg("New base health: %s" % souorcerpg.players[userid]['maxHealth'])
+    es.msg("New base health: %s" % sourcerpg.players[userid]['maxHealth'])
     baseHealth[userid] = sourcerpg.players[userid]['maxHealth']
 
 def setHealth(userid):
