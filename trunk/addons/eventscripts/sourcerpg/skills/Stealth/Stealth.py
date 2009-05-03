@@ -52,6 +52,17 @@ def player_spawn(event_var):
                 gamethread.delayed(0, getBaseStealth, userid)
                 gamethread.delayed(0, gamethread.delayed(0, setStealth, userid) )
             
+def player_disconnect(event_var):
+    """
+    Executed when a player disconnects from the server. If they have an instance
+    in the global dictionary, remove them from it
+    
+    @PARAM event_var - an automatically passed event instace
+    """ 
+    userid = event_var['userid']
+    if userid in baseStealth:
+        del baseStealth[userid]
+
 def sourcerpg_skillupgrade(event_var):
     """
     An event which executes when a player upgrades a skill. If the skill is

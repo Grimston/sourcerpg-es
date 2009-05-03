@@ -18,6 +18,8 @@ creditStart     = config.cvar("srpg_armorCreditsStart",     15, "The starting am
 creditIncrement = config.cvar("srpg_armorCreditsIncrement", 10, "How much the credits increment after the first level")
 armorIncrement  = config.cvar("srpg_armorIncrements",       25, "How much additional health each level acquires")
 
+baseArmor = {}
+
 def load():
     """ 
     This method executes when the script loads. Register the skill
@@ -49,6 +51,17 @@ def player_spawn(event_var):
                 gamethread.delayed(0, getBaseArmor, userid)
                 gamethread.delayed(0, gamethread.delayed, (0, setArmor, userid) )
         
+def player_disconnect(event_var):
+    """
+    Executed when a player disconnects from the server. If they have an instance
+    in the global dictionary, remove them from it
+    
+    @PARAM event_var - an automatically passed event instace
+    """ 
+    userid = event_var['userid']
+    if userid in baseArmor:
+        del baseArmor[userid]
+
 def sourcerpg_skillupgrade(event_var):
     """
     An event which executes when a player upgrades a skill. If the skill is
