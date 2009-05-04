@@ -147,12 +147,14 @@ class RegenObject(object):
         
         @PARAM amount - amount of health to add
         """
-        currentHealth = self.getHealth(self.userid) + amount
-        player = sourcerpg.players[self.userid]
-        if currentHealth > player['maxHealth']:
-            currentHealth = player['maxHealth']
-            gamethread.delayed(0, self.stopRegen)
-        self.setHealth(self.userid, currentHealth)
+        if isinstance(amount, int):
+            currentHealth = self.getHealth(self.userid) + amount
+            if currentHealth > amount:
+                player = sourcerpg.players[self.userid]
+                if currentHealth > player['maxHealth']:
+                    currentHealth = player['maxHealth']
+                    gamethread.delayed(0, self.stopRegen)
+                self.setHealth(self.userid, currentHealth)
 
     @staticmethod
     def getHealth(userid):
@@ -162,7 +164,9 @@ class RegenObject(object):
         @PARAM userid - the userid to get the health of
         @RETURN integer - amount of health a user has
         """
-        return es.getplayerprop(userid, 'CBasePlayer.m_iHealth')
+        if es.getplayerprop(userid, 'CBasePlayer.pl.deadflag'):
+            return es.getplayerprop(userid, 'CBasePlayer.m_iHealth')
+        return 0
         
     @staticmethod
     def setHealth(userid, amount):
