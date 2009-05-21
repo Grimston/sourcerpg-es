@@ -694,7 +694,8 @@ def unload():
     
     del globals()['admin']
     del globals()['popup']
-    popuplib.delete("sourcerpg_confirmDeleteDatabase")
+    if popuplib.exists("sourcerpg_confirmDeleteDatabase"):
+        popuplib.delete("sourcerpg_confirmDeleteDatabase")
     
     cmdlib.unregisterSayCommand("rpg_admin")
     cmdlib.unregisterSayCommand("rpgadmin")

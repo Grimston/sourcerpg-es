@@ -133,6 +133,8 @@ class HealObject(repeat.Repeat):
         x, y, z = es.getplayerlocation(self.userid)
         team    = es.getplayerteam(self.userid)
         player  = sourcerpg.players[self.userid]
+        if team not in (2, 3):
+            return
         if player is not None:
             level   = player[skillName]
             if level:
