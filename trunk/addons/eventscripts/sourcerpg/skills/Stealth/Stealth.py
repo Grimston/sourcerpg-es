@@ -102,6 +102,8 @@ def setStealth(userid):
     """
     player = sourcerpg.players[userid]
     level  = player[skillName]
+    if userid not in baseStealth:
+        getBaseStealth(userid)
     percentage = int(baseStealth[userid] * float(minStealth) / 100.)
     eachSegment = int( (baseStealth[userid] - percentage) / maxLevel )
     eachSegment = baseStealth[userid] - (level * eachSegment)

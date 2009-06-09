@@ -100,6 +100,8 @@ def setHealth(userid):
     """
     player = sourcerpg.players[userid]
     level  = player[skillName]
+    if userid not in baseHealth:
+        baseHealth[userid] = player['baseHealth']
     level  = level * int(healthIncrement) + baseHealth[userid]
     player['maxHealth'] = level
     es.setplayerprop(userid, 'CBasePlayer.m_iHealth', player['maxHealth'])

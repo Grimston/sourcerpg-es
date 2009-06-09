@@ -137,16 +137,17 @@ class GravityObject(object):
         This method updates a player's settings. If they've changed, they will
         reset the players gravity
         """
-        newAirValue      = es.getplayerprop(self.userid, 'CBasePlayer.m_fFlags') & 1
-        newMovementValue = es.getplayerprop(self.userid, 'CBaseEntity.movetype')
-        if newAirValue != self.lastAirValue:
-            """ Player has jumped """
-            self.lastAirValue = newAirValue
-            self.reset()
-        elif newMovementValue != self.lastMovementValue and newMovementValue == 2:
-            """ Player has gone back to static movements, (i.e jumped off of a ladder) """
-            self.lastMovementValue = 2
-            self.reset()
+        if es.exists('userid', self.userid):
+            newAirValue      = es.getplayerprop(self.userid, 'CBasePlayer.m_fFlags') & 1
+            newMovementValue = es.getplayerprop(self.userid, 'CBaseEntity.movetype')
+            if newAirValue != self.lastAirValue:
+                """ Player has jumped """
+                self.lastAirValue = newAirValue
+                self.reset()
+            elif newMovementValue != self.lastMovementValue and newMovementValue == 2:
+                """ Player has gone back to static movements, (i.e jumped off of a ladder) """
+                self.lastMovementValue = 2
+                self.reset()
         
     def reset(self, amountOverride = None):
         """

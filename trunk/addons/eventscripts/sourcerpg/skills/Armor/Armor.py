@@ -99,7 +99,11 @@ def setArmor(userid):
     @PARAM userid - the userid of which to set the armor of
     """
     player = sourcerpg.players[userid]
-    armor  = baseArmor[userid]
+    if userid not in baseArmor:
+        armor = 100
+        baseArmor[userid] = player['maxArmor']
+    else:
+        armor  = baseArmor[userid]
     level  = player[skillName]
     level  = level * int(armorIncrement) + armor
     player['maxArmor'] = level
