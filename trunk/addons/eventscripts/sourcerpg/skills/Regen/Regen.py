@@ -48,7 +48,10 @@ class RegenManager(object):
         """
         userid = int(userid)
         if self.__contains__(userid):
-            del self.regenObjects[userid] # calls deconstructor
+            if self.regenObjects[userid].repeat is not None:
+                self.regenObjects[userid].repeat.stop()
+                self.regenObjects[userid].repeat.delete()
+            del self.regenObjects[userid]
             
     def __getitem__(self, userid):
         """
@@ -148,9 +151,12 @@ class RegenObject(object):
         @PARAM amount - amount of health to add
         """
         if isinstance(amount, int):
-            currentHealth = self.getHealth(self.userid) + amount
-            if currentHealth > amount:
+            if es.exists('userid', self.userid):
+                currentHealth = self.getHealth(self.userid) + amount
                 player = sourcerpg.players[self.userid]
+                if currentHealth == amount:
+                    gamethread.delayed(0, self.stopRegen)
+                    return
                 if currentHealth > player['maxHealth']:
                     currentHealth = player['maxHealth']
                     gamethread.delayed(0, self.stopRegen)
@@ -164,7 +170,7 @@ class RegenObject(object):
         @PARAM userid - the userid to get the health of
         @RETURN integer - amount of health a user has
         """
-        if es.getplayerprop(userid, 'CBasePlayer.pl.deadflag'):
+        if not es.getplayerprop(userid, 'CBasePlayer.pl.deadflag'):
             return es.getplayerprop(userid, 'CBasePlayer.m_iHealth')
         return 0
         

@@ -48,6 +48,10 @@ class RegenManager(object):
         """
         userid = int(userid)
         if self.__contains__(userid):
+            repeatObject = self.regenObjects[userid]
+            if repeatObject.repeat is not None:
+                repeatObject.repeat.stop()
+                repeatObject.repeat.delete()
             del self.regenObjects[userid] # calls deconstructor
             
     def __getitem__(self, userid):
@@ -219,19 +223,20 @@ def player_death(event_var):
     userid = event_var['userid']
     if regen[userid].isRunning():
         regen[userid].stopRegen()
-    
+
 def player_hurt(event_var):
     """
     This event executes when a player is damaged. If the user's regeneration
     isn't currently running, then create one and start the regeneration
-    
+
     @PARAM event_var - an automatically passed event instance
     """
     userid = event_var['userid']
-    level  = sourcerpg.players[userid][skillName]
-    if level:
-        if not regen[userid].isRunning():
-            regen[userid].startRegen(level, float(regenDelay) )
+    if not es.getplayerprop(userid, 'CBasePlayer.pl.deadflag'):
+        level  = sourcerpg.players[userid][skillName]
+        if level:
+            if not regen[userid].isRunning():
+                regen[userid].startRegen(level, float(regenDelay) )
             
 def sourcerpg_skillupgrade(event_var):
     """

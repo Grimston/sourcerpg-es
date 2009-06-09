@@ -1,4 +1,4 @@
-# SourceRPG release 2.0.0 by Steven Hartin
+# SourceRPG release 2.0 by Steven Hartin
 # ./addons/eventscripts/sourcerpg/sourcerpg.py
 
 # >>> To configure this addon please see config.cfg <<<
@@ -9,6 +9,17 @@
 ####    IF YOU DO, THINGS   #####
 ####   THINGS COULD BREAK   #####
 #################################
+
+import os
+import random
+import time
+
+from sqlite3 import dbapi2 as sqlite
+
+""" Import the psyco module which improves speed """
+import psyco
+psyco.full()
+
 import es
 import popuplib
 import langlib
@@ -17,21 +28,10 @@ import playerlib
 import cfglib
 import cmdlib
 
-import random
-import time
-import os
-
-#from shutil import move as move
-from sqlite3 import dbapi2 as sqlite
-
-""" Import the psyco module which improves speed """
-import psyco
-psyco.full()
-
 # Set the addon info data
 info = es.AddonInfo()
 info.name     = 'SourceRPG'
-info.version  = '2.0.028'
+info.version  = '2.0.029'
 info.basename = 'sourcerpg'
 info.author   = 'Freddukes AKA Pro Noob'
 info.url      = 'http://addons.eventscripts.com/addons/view/%s' % info.basename
@@ -1710,7 +1710,7 @@ class PopupCallbacks(object):
         """
         if choice:
             players[userid].resetSkills()
-        
+
 """ Create the singletons to hold the object of the manager classes """
 databasePath = os.path.join( es.getAddonPath(info.basename), "players.sqlite" )
 if int(turboMode):
@@ -2218,11 +2218,12 @@ def saveDatabase():
     
     """ Only process if turbo mode is off """
     if not currentTurboMode:
-        """ Update all the player's stats gained """
+        """ Update all the player's stats gained and commit the database"""
         for player in players:
             player.commit()
-        """ Commit the database """
         database.save()
+
+        """ Create and fire the event """
         es.event("initialize", "sourcerpg_databasesaved")
         es.event("setstring",  "sourcerpg_databasesaved", "type", str(saveType) )
         es.event("fire",       "sourcerpg_databasesaved")
