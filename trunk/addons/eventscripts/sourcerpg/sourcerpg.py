@@ -31,7 +31,7 @@ psyco.full()
 # Set the addon info data
 info = es.AddonInfo()
 info.name     = 'SourceRPG'
-info.version  = '2.0.011'
+info.version  = '2.0.027'
 info.basename = 'sourcerpg'
 info.author   = 'Freddukes AKA Pro Noob'
 info.url      = 'http://addons.eventscripts.com/addons/view/%s' % info.basename
@@ -2096,9 +2096,9 @@ def player_hurt(event_var):
                 weapon = event_var['weapon']
                 if weapon in weaponXp:
                     if weaponXp[weapon][0]:
-                        player.addXp( weaponXp[weapon][0] * players[userid]['level'], tellUserOverride = False)
+                        player.addXp( weaponXp[weapon][0], tellUserOverride = False)
                 else:
-                    player.addXp( int(damageXp) * players[userid]['level'], tellUserOverride = False )
+                    player.addXp( int(damageXp), tellUserOverride = False )
     
 def bomb_planted(event_var):
     """
