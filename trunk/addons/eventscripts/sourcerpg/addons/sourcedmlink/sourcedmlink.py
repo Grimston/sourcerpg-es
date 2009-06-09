@@ -26,4 +26,4 @@ def player_spawn(event_var):
     @PARAM event_var - automatic passed event instance
     """
     if not es.getplayerprop(event_var['userid'], 'CBasePlayer.pl.deadflag'):
-        sourcerpg.players[event_var['userid']]['maxHealth'] = 51300
+        sourcerpg.players[event_var['userid']]['baseHealth'] = 51300

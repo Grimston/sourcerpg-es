@@ -89,7 +89,7 @@ def getBaseHealth(userid):
 
     @PARAM userid - the user who to get the base health for
     """
-    baseHealth[userid] = sourcerpg.players[userid]['maxHealth']
+    baseHealth[userid] = sourcerpg.players[userid]['baseHealth']
 
 def setHealth(userid):
     """

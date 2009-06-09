@@ -1055,6 +1055,7 @@ class PlayerObject(object):
         All the default virtual information about a player which is not database
         related should be set here such as maximum speed and maximum health
         """
+        self.playerAttributes['baseHealth'] = 100
         self.playerAttributes['maxHealth']  = 100
         self.playerAttributes['maxSpeed']   = 1.0
         self.playerAttributes['maxGravity'] = 1.0
