@@ -642,12 +642,6 @@ class SkillObject(object):
         self.info     = None
         self.startCredit     = creditStart
         self.creditIncrement = creditIncrement
-        #database.addSkill(self.name)
-        #self.rowid = database.getRowIdFromSkillName(skillName)
-        
-    def __del__(self):
-        """ Default deconstructor, remove this skill from the database """
-        database.removeSkill(self.name)
         
     def __str__(self):
         """ 

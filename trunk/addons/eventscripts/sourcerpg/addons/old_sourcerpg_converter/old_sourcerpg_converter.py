@@ -112,7 +112,7 @@ def writeEntries():
     """
     entries = convertEntries()
     print "Estimated time: %02d:%02d" % divmod(int(0.0125 * len(entries)), 60)
-
+    now = time.time()
     for steamid, values in entries.iteritems():
         """ Loop through all the steamids in the converted entries """
         try:
