@@ -215,29 +215,32 @@ class SQLiteManager(object):
         self.connection.text_factory = str
         self.cursor     = self.connection.cursor()
         
+        self.cursor.execute("PRAGMA journal_mode = OFF")
+        
         """ Create the table to hold the players global stats """
         self.cursor.execute("""\
-        CREATE TABLE IF NOT EXISTS playerstats (steamid TEXT PRIMARY KEY NOT
-        NULL, level INTEGER DEFAULT 1, xp INTEGER DEFAULT 0, credits INTEGER 
-        DEFAULT """ + str(startCredits) + """, popup INTEGER DEFAULT """ + 
-        str(popupStatus) + """, name TEXT DEFAULT 'default', lastconnected
-        TEXT DEFAULT '0')\
-        """)
+CREATE TABLE IF NOT EXISTS Player (
+    UserID  INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    steamid VARCHAR(30) NOT NULL, 
+    level   INTEGER DEFAULT 1, 
+    xp      INTEGER DEFAULT 0, 
+    credits INTEGER DEFAULT 5, 
+    popup   INTEGER DEFAULT 1, 
+    name    VARCHAR(30) DEFAULT 'default', 
+    lastconnected TEXT
+)""")
         
         """ Create the table to hold a link between a row id and a list of skill names """
         self.cursor.execute("""\
-        CREATE TABLE IF NOT EXISTS skills (rowid INTEGER PRIMARY KEY 
-        AUTOINCREMENT NOT NULL, name TEXT NOT NULL)\
-        """)
+CREATE TABLE IF NOT EXISTS Skill (
+    SkillID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
+    name    VARCHAR(30) NOT NULL,
+    UserID  INTEGER NOT NULL,
+    level   INTEGER DEFAULT 0
+)""")
         
-        """ Create a table to make a link between a skill and a player """
-        self.cursor.execute("""\
-        CREATE TABLE IF NOT EXISTS playerskills (rowid INTEGER PRIMARY KEY
-        AUTOINCREMENT NOT NULL, steamid TEXT NOT NULL, skillrowid 
-        INTEGER NOT NULL, level INTEGER DEFAULT 0)\
-        """)
-        
-        self.cursor.execute("PRAGMA journal_mode = OFF;")
+        self.cursor.execute("CREATE INDEX IF NOT EXISTS StatIndex   ON Skill(UserID);")
+        self.cursor.execute("CREATE INDEX IF NOT EXISTS PlayerIndex ON Player(SteamID);")
         
     def __del__(self):
         """
@@ -260,7 +263,7 @@ class SQLiteManager(object):
         key = str(key)
         if key in self.players:
             return True
-        self.cursor.execute("SELECT level FROM playerstats WHERE steamid='" + str( key ) + "'")
+        self.cursor.execute("SELECT level FROM Player WHERE steamid=?", (key,) )
         result = self.cursor.fetchone()
         if bool( result ):
             self.players.append(key)
@@ -275,17 +278,23 @@ class SQLiteManager(object):
         
         @RETURN yield object - string objects which represent player's steamids
         """
-        self.cursor.execute("SELECT Steamid FROM playerstats")
+        self.cursor.execute("SELECT steamid FROM Player")
         for steamid in self.cursor.fetchall():
             yield steamid[0]
         
-    def execute(self, parseString):
+    def execute(self, parseString, variables=None):
         """
         A wrapper function to simulate the execute() method of a cursor object.
         
         @PARAM parseString - the string query line of a SQLite statement
+        @PARAM variables   - the list of variables to inject into the SQLite query
         """
-        self.cursor.execute(parseString)
+        if variables is not None:
+            if not hasattr(variables, "__iter__"):
+                variables = (variables,)
+            self.cursor.execute(parseString, variables)
+        else:
+            self.cursor.execute(parseString)
         
     def addPlayer(self, steamid, name):
         """
@@ -296,136 +305,96 @@ class SQLiteManager(object):
         @PARAM name - the string value of a players name
         """
         name = str(name).replace("'", "''")
-        if not self.__contains__(steamid):
-            self.cursor.execute("INSERT OR IGNORE INTO playerstats (steamid, popup, credits, name) VALUES ('" + "', '".join( ( str( steamid ), str(popupStatus), str(startCredits), name)) + "')")
-            self.cursor.execute("SELECT rowid FROM skills")
-            for skill in self.cursor.fetchall():
-                row = skill[0]
-                query = "INSERT OR IGNORE INTO playerskills (steamid, skillrowid) VALUES ('" + "', '".join( ( str( steamid ), str( row ) ) ) + "')"
-                self.cursor.execute(query)
-    
-    def addSkill(self, skillName):
-        """
-        Add a skill to the skills table within the database and to the temporary
-        list attribute within this instance
-        
-        @PARAM skillName - the string name of the skill
-        """
-        convertedSkillName = str(skillName).replace("'", "''")
-        self.cursor.execute("SELECT rowid FROM skills WHERE name='" + convertedSkillName + "'")
-        if not bool(self.cursor.fetchone()):
-            self.cursor.execute("INSERT INTO skills (name) VALUES ('" + convertedSkillName + "')")
-        self.skills.append(skillName)
+        self.cursor.execute("INSERT OR IGNORE INTO Player (steamid, popup, credits, name, lastconnected) VALUES (?,?,?,?,?)", (steamid, int(popupStatus), int(startCredits), name, time.time() ) )
+        return self.cursor.lastrowid
             
-    def addSkillIntoPlayerDatabase(self, steamid, rowId, level):
+    def getUserIdFromSteamId(self, steamId):
+        """
+        Return the UserID auto increment value from a given steamid
+        
+        @PARAM steamId - the steamid of the player
+        @RETURN INTEGER - the row, if the user doesn't exist, then return None
+        """
+        self.cursor.execute("SELECT UserID FROM Player WHERE steamid=?", (steamId,) )
+        value = self.cursor.fetchone()
+        if value is None:
+            return None
+        return value[0]
+            
+    def addSkillIntoPlayerDatabase(self, userid, name, level = 0):
         """
         Adds a new skill into a players database with a certain base level
         
         @PARAM steamid - the steamid of the player who you wish to insert the skill for
-        @PARAM rowId - the row of the skill which represents the skill in skills table
-        @PARAM level - the level that the user starts off with
+        @PARAM name    - the name of the skill
+        @PARAM level   - the level that the user starts off with
+        @RETURN integer - the SkillID.
         """
-        self.cursor.execute("INSERT OR IGNORE INTO playerskills (steamid, skillrowid, level) VALUES ('" + "','".join( map (str, (steamid, rowId, level) ) ) + "')")
+        if not isinstance(userid, int):
+            userid = self.getUserIdFromSteamId(userid)
+        self.cursor.execute("INSERT OR IGNORE INTO Skill (UserID, name, level) VALUES (?,?,?)", (userid, name, level))
+        return self.cursor.lastrowid
         
-    def updateSkillForPlayer(self, steamid, rowId, level):
+    def updateSkillForPlayer(self, userid, name, level):
         """
         Updates the skill for a player to a new level
         
-        @PARAM steamid - the steamid of the player who you wish to insert the skill for
-        @PARAM rowId - the row of the skill which represents the skill in skills table
-        @PARAM level - the new level of the skill
+        @PARAM userid - the userid database int for the player who you wish to insert the skill for
+        @PARAM name   - the name of the skill
+        @PARAM level  - the new level of the skill
         """
-        self.cursor.execute("UPDATE playerskills SET level=" + str(level) + " WHERE steamid='" + str(steamid) + "' AND skillrowid=" + str(rowId))
+        if not isinstance(userid, int):
+            userid = self.getUserIdFromSteamId(userid)
+        self.cursor.execute("UPDATE Skill SET level=? WHERE UserID=? AND name=?", (level, userid, name) )
             
-    def checkPlayerSkillExists(self, steamid, skillName):
+    def checkPlayerSkillExists(self, userid, skillName):
         """
         Checks to see if a player has a level instance for the a certain skill
         
-        @PARAM steamid - the string steamid of a player to check
+        @PARAM userid    - the integer userid of a player to check
         @PARAM skillName - the string name of the skill to check
-        @RETURN boolean - whether or not the skill exists for the player
+        @RETURN boolean  - whether or not the skill exists for the player
         """
-        skillId = self.getRowIdFromSkillName(skillName)
-        self.cursor.execute("SELECT level FROM playerskills WHERE Steamid=\"" + 
-                            str(steamid) + "\" AND skillrowid=" + str(skillId))
+        if not isinstance(userid, int):
+            userid = self.getUserIdFromSteamId(userid)
+        self.cursor.execute("SELECT level FROM Skill WHERE UserID=? AND name=?", (userid, skillName))
         return bool( self.fetchone() )
-            
-    def removeSkill(self, skillName):
-        """
-        Removes a skill from the temporary skill list within the instance
         
-        @PARAM skillName - the name of the skill to remove
-        """
-        if skillName in self.skills:
-            del self.skills[self.skills.index(skillName)]
-        
-    def getPlayerStat(self, steamid, statType):
+    def getPlayerStat(self, userid, statType):
         """
         Returns a players attribute from the playerstats table.
         
-        @PARAM steamid - the string steamid of the player your wish to check
+        @PARAM userid   - the integer userid of the player your wish to check
         @PARAM statType - the column name of the value you wish to return
-        @RETURN object - returns an object type of the value to which statType returns
+        @RETURN object  - returns an object type of the value to which statType returns
         """
+        if not isinstance(userid, int):
+            userid = self.getUserIdFromSteamId(userid)
         statType = str(statType).replace("'", "''")
         if hasattr(statType, "__len__"):
-            query = "SELECT " + ",".join( map( str, statType) ) + " FROM playerstats WHERE steamid='" + str(steamid) + "'"
+            query = "SELECT " + ",".join( map( str, statType) ) + " FROM Player WHERE UserID=?"
         else:
-            query = "SELECT " + str( statType ) + " FROM playerstats WHERE steamid='" + str(steamid) + "'"
-        self.execute(query)
+            query = "SELECT " + str( statType ) + " FROM Player WHERE UserID=?"
+        self.execute(query, (userid,) )
         return self.fetchone()
         
-    def getSkillLevel(self, steamid, skillName):
+    def getSkillLevel(self, userid, skillName):
         """
         Returns a players level of a certain skill
         
-        @PARAM steamid - the string representation of a players steamid
+        @PARAM steamid   - the integer representation of a players userid
         @PARAM skillName - the string name of a certain skill
-        @RETURN integer - an integral value which represents the level of the players skill
+        @RETURN integer  - an integral value which represents the level of the players skill
         """
-        skillName = self.getSkillName(skillName)
-        if skillName:
-            skillId = self.getRowIdFromSkillName( skillName )
-            if skillId:
-                self.execute("SELECT level FROM playerskills WHERE steamid=\"" + \
-                             steamid + "\" AND skillrowid=\"" + str(skillId) + "\"")
-                return self.fetchone()
-        return 0
-    
-    def getRowIdFromSkillName(self, skillName):
-        """
-        Returns the rowID from a skill from the skills table within the database
-        
-        @PARAM skillName - the string name of the skill we wish to return the rowid from
-        @RETURN integer - the id which the row coincides with
-        """
-        self.execute("SELECT rowid FROM skills WHERE name=\"" + str(skillName) + "\"")
-        return self.fetchone()
-        
-    def getSkillNameFromRowId(self, rowId):
-        """
-        Returns the name of a skill from its row ID representation
-        
-        @PARAM rowId - integral value to represent where the skill is located
-        @RETURN string - the name of the skill  
-        """
-        self.execute("SELECT name FROM skills WHERE rowid=\"" + str(rowId) + "\"")
-        return self.fetchone()
-        
-    def getSkillName(self, rowIdOrSkillName):
-        """
-        Returns the actual name of the skill from either the row ID or the
-        actual skill name.
-        
-        @PARAM rowIdOrSkillName - the row ID or skill name of the skill
-        @RETURN string - the name of the skill if it exists, otherwise None
-        """
-        rowIdOrSkillName = str(rowIdOrSkillName)
-        if rowIdOrSkillName in self.skills:
-            return rowIdOrSkillName
-        if rowIdOrSkillName.isdigit():
-            return self.getSkillNameFromRowId(rowIdOrSkillName)
-        return None
+        if not isinstance(userid, int):
+            userid = self.getUserIdFromSteamId(userid)
+
+        self.cursor.execute("SELECT level FROM Skill WHERE UserID=? AND name=?",
+                                (userid, skillName))
+        value = self.cursor.fetchone()
+        if value is None:
+            return None
+        return value[0]
         
     def update(self, table, primaryKeyName, primaryKeyValue, options):
         """
@@ -530,7 +499,7 @@ class SQLiteManager(object):
         @RETURN Object - the result from the query command
         """
         result = self.cursor.fetchone()
-        if hasattr(result, "__len__"):
+        if hasattr(result, "__iter__"):
             if len(result) == 1: 
                 return result[0]
         return result    
@@ -550,8 +519,8 @@ class SQLiteManager(object):
         
         @PARAM saveDatabase - optional value, if True, it will commit the database
         """
-        self.cursor.execute("DELETE FROM playerstats")
-        self.cursor.execute("DELETE FROM playerskills")
+        self.cursor.execute("DROP TABLE Player")
+        self.cursor.execute("DROP TABLE Skill")
         if saveDatabase:
             self.save()
         
@@ -637,18 +606,6 @@ class SkillManager(object):
             return self.skills[skillName]
         return None
         
-    def convertRowIdToSkillName(self, rowId):
-        """
-        Returns the skill name from a given row id accessed by the database
-        
-        @PARAM rowId - the id of the row which the skill exists within the database
-        @RETRUN string - the name of the skill
-        """
-        for skill in self.__iter__():
-            if skill.rowid == rowId:
-                return skill.name
-        return None
-        
     def removeSkill(self, skillName):
         """ 
         Removes a skill instance from the database attribute, 
@@ -685,8 +642,8 @@ class SkillObject(object):
         self.info     = None
         self.startCredit     = creditStart
         self.creditIncrement = creditIncrement
-        database.addSkill(self.name)
-        self.rowid = database.getRowIdFromSkillName(skillName)
+        #database.addSkill(self.name)
+        #self.rowid = database.getRowIdFromSkillName(skillName)
         
     def __del__(self):
         """ Default deconstructor, remove this skill from the database """
@@ -930,16 +887,18 @@ class PlayerObject(object):
         
         @PARAM userid - the userid of the player
         """
-        self.userid  = int( userid )
-        self.steamid = playerlib.uniqueid( userid, True )
-        self.name    = es.getplayername( userid )
-        self.isbot   = es.isbot( userid )
+        self.userid   = int( userid )
+        self.steamid  = playerlib.uniqueid( userid, True )
+        self.name     = es.getplayername( userid )
+        self.isbot    = es.isbot( userid )
         self.currentAttributes = {}
         self.oldAttributes     = {}
         self.currentSkills = {}
         self.oldSkills     = {}
         gamethread.delayed(0, self.setCommand)
-        database.addPlayer(self.steamid, self.name)
+        self.dbUserid = database.getUserIdFromSteamId(self.steamid)
+        if self.dbUserid is None:
+            self.dbUserid = database.addPlayer(self.steamid, self.name)
         self.update()
         self.playerAttributes = {}
         self.resetPlayerDefaultAttributes()
@@ -1033,6 +992,13 @@ class PlayerObject(object):
             return level
         if item in self.playerAttributes:
             return self.playerAttributes[item]
+        if item in skills:
+            """ 
+            The item is a skill, however, the user hasn't got a database column
+            yet and rather than create one because we don't need it yet, we can
+            just return 0
+            """
+            return 0
         return None
         
     def __setitem__(self, item, value):
@@ -1045,7 +1011,7 @@ class PlayerObject(object):
         """
         if item in self.currentAttributes:
             self.currentAttributes[item] = value
-        elif item in self.currentSkills:
+        elif item in self.currentSkills or item in skills:
             self.currentSkills[item] = value
         else:
             self.playerAttributes[item] = value
@@ -1082,26 +1048,26 @@ class PlayerObject(object):
         
         if not currentTurboMode:
             """ Update the player's generic static stats """
-            attributesToUpdate = {}
             for key, value in self.currentAttributes.iteritems():
-                if key not in self.oldAttributes:
-                    attributesToUpdate[key] = value
-                else:
+                if key in self.oldAttributes:
+                    # We only want to update current attributes.
                     if value <> self.oldAttributes[key]:
-                        attributesToUpdate[key] = value
-            if attributesToUpdate:
-                database.update("playerstats", "steamid", self.steamid, attributesToUpdate)
-            
+                        database.cursor.execute("UPDATE Player SET %s=? WHERE UserID=?" % key,
+                                                 (value,
+                                                  self.dbUserid) )            
             """ Update the skills """
-            attributesToUpdate.clear()
             for key, value in self.currentSkills.iteritems():
                 if key not in self.oldSkills:
-                    database.addSkillIntoPlayerDatabase(self.steamid, skills[key].rowid, value)
+                    database.cursor.execute("INSERT INTO Skill (name, UserID, level) VALUES (?,?,?)",
+                                            (key,
+                                             self.dbUserid,
+                                             value) )
                 else:
                     if value <> self.oldSkills[key]:
-                        database.updateSkillForPlayer(self.steamid, skills[key].rowid, value)
-            if attributesToUpdate:
-                database.update("playerskills", "steamid", self.steamid, attributesToUpdate)
+                        database.cursor.execute("UPDATE Skill SET level=? WHERE UserID=? AND name=?",
+                                                    (value,
+                                                     self.dbUserid,
+                                                     key ) )
             
             """ Make sure the old attributes are updates """
             self.oldAttributes = self.currentAttributes.copy()
@@ -1115,7 +1081,7 @@ class PlayerObject(object):
         If turbo mode is on, then it will make up default values.
         """
         if not currentTurboMode:
-            database.execute("SELECT * FROM playerstats WHERE steamid='" + self.steamid + "'")
+            database.execute("SELECT * FROM Player WHERE UserID=?", (self.dbUserid,) )
                     
             """ 
             ~NOTE: Nasty, explicitly defining may break in future updates if I
@@ -1127,23 +1093,20 @@ class PlayerObject(object):
             and currentAttributes with items from the list.
             """
             result = database.fetchone()
-            steamid, level, xp, credits, popup, name, lastconnected = result
+            UserID, steamid, level, xp, credits, popup, name, lastconnected = result
             
             for option in ('steamid', 'level', 'xp', 'credits', 'popup', 'name', 'lastconnected'):
                 self.oldAttributes[option] = self.currentAttributes[option] = locals()[option]
                 
             """ Retrieve the skills id and level from the database """
-            database.execute("SELECT skillrowid,level FROM playerskills WHERE steamid='" + self.steamid + "'")
+            database.execute("SELECT name,level FROM Skill WHERE UserID=?", (self.dbUserid,) )
             
             """ Iterate through all the skills returned """
             for skill in database.fetchall():
                 """ Each iteration will produce a 2 itemed tuple with skillrow and level """
-                skillrow, level = skill
-                """ Obtain the actual skill name """
-                skillName = skills.convertRowIdToSkillName(skillrow)
-                if skillName:
-                    """ We only want to add the skill if it's currently loaded """
-                    self.oldSkills[skillName] = self.currentSkills[skillName] = level
+                skillName, level = skill
+                """ We only want to add the skill if it's currently loaded """
+                self.oldSkills[skillName] = self.currentSkills[skillName] = level
                     
         else:
             """ Turbo mode is on, make the default attributes """   
@@ -1156,14 +1119,6 @@ class PlayerObject(object):
             }
             for key, value in defaultValues.iteritems():
                 self.oldAttributes[key] = self.currentAttributes[key] = value
-        
-        """
-        If any new skills were added since last time the player connected,
-        default them to 0
-        """
-        for skill in skills:
-            if skill.name not in self.currentSkills:
-                self.currentSkills[skill.name] = 0
         
 class CommandsDatabase(object):
     """
@@ -1384,7 +1339,7 @@ class RankManager(object):
         """
         Updates the ranks with the latest information from the sqlite database
         """
-        database.execute("SELECT steamid FROM playerstats ORDER BY level DESC,xp DESC")
+        database.cursor.execute("SELECT steamid FROM Player ORDER BY level DESC,xp DESC")
         results = database.cursor.fetchall()
         self.ranks = []
         for steamid in results:
@@ -1894,7 +1849,7 @@ def es_map_start(event_var):
     ranks.update()
 
     if ranks.getPlayerSlice(0, 10):
-        query = "SELECT name,level,xp,credits FROM playerstats WHERE steamid IN ("
+        query = "SELECT name,level,xp,credits FROM Player WHERE steamid IN ("
         for steamid in ranks.getPlayerSlice(0, 10):
             query += "'%s', " % steamid
         query = query[:-2] + ") ORDER BY level DESC,xp DESC"
@@ -1935,10 +1890,10 @@ def es_map_start(event_var):
     currentTime = time.time()
     currentTime -= ( float(inactivityCounter) * 86400 ) # 86400 = seconds in a day
     
-    database.execute("SELECT steamid FROM playerstats WHERE lastconnected<%s" % currentTime)
-    for steamid in database.fetchall():
-        database.execute("DELETE FROM playerskills WHERE steamid='" + steamid + "'")
-        database.execute("DELETE FROM playerstats WHERE steamid='" + steamid + "'")
+    database.execute("SELECT UserID FROM Player WHERE lastconnected < ?", (currentTime,) )
+    for userid in database.fetchall():
+        database.execute("DELETE FROM Player WHERE UserID=?", (userid,) )
+        database.execute("DELETE FROM Skill WHERE UserID=?", (userid,) )
     
 def player_activate(event_var):
     """

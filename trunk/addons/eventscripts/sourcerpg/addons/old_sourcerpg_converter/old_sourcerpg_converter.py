@@ -116,31 +116,28 @@ def writeEntries():
     for steamid, values in entries.iteritems():
         """ Loop through all the steamids in the converted entries """
         try:
-
             if steamid in sourcerpg.database:
                 """ If the player exists, remove them from the database """
-                sourcerpg.database.execute("DELETE FROM playerstats WHERE steamid='" + steamid +"'")
-                sourcerpg.database.execute("DELETE FROM playerskills WHERE steamid='" + steamid +"'")
+                UserID = sourcerpg.database.getUserIdFromSteamId(steamid) 
+                sourcerpg.database.cursor.execute("DELETE FROM Player WHERE UserID=?", (UserID,) )
+                sourcerpg.database.cursor.execute("DELETE FROM Skill WHERE UserID=?", (UserID,) )
 
             """ Add the player instance into the database with default values """
-            sourcerpg.database.execute("""INSERT OR IGNORE INTO playerstats
-                                    (steamid, popup, credits, name, level, xp,
-                                    lastconnected)
-                                    VALUES ('%s', %s, %s, '%s', %s, %s, '%s')"""
-                                    % (steamid, values['popup'], values['credits'],
+            sourcerpg.database.cursor.execute("""INSERT INTO Player
+                                    (steamid, popup, credits, name, level, xp, lastconnected)
+                                    VALUES (?,?,?,?,?,?,?)""",
+                                    (steamid, int(sourcerpg.popupStatus), values['credits'],
                                     values['name'].replace("'", "''"), values['level'],
-                                    values['xp'], values['lastconnected']) )
+                                    values['xp'], now) )
+            userid = sourcerpg.database.cursor.lastrowid
             for skillName, level in values['skills'].iteritems():
                 """ Loop through all the converted skills and attributes """
-                if skillName not in sourcerpg.skills:
-                    """
-                    The skill is not loaded, load it to ensure that the
-                    id is made within the database
-                    """
-                    sourcerpg.commands.load(skillName)
+                if not level:
+                    """ Don't make any skills which don't have a level """
+                    continue
                 """ Obtain the rowid from the database and set the new skill """
-                skillId = sourcerpg.skills[skillName].rowid
-                sourcerpg.database.addSkillIntoPlayerDatabase(steamid, skillId, level)
+                sourcerpg.database.cursor.execute("INSERT INTO Skill (name, UserID, level) VALUES (?,?,?)",
+                                                    (skillName, userid, level) )
 
         except OperationalError:
             """ We got an error, ignore it and continue to the next person. """
