@@ -10,6 +10,19 @@
 ####   THINGS COULD BREAK   #####
 #################################
 
+"""
+Bugs:
+
+
+10:55 - realchamp [O.C. Reg]: do you know why a single person's stats gets reset
+        every map change and if he disconnect and connects, his stats are reset?
+        
+Mattie Forums: Starcraft says that the script crashes on round_end - I presume
+               that this is due to the database saving... Dunno though, need
+               to make sure. Also, it is running from his own computer, I dunno
+               which distro. Maybe that is the cause?
+"""
+
 import os
 import random
 import time
@@ -31,7 +44,7 @@ import cmdlib
 # Set the addon info data
 info = es.AddonInfo()
 info.name     = 'SourceRPG'
-info.version  = '2.0.029'
+info.version  = '2.0.033'
 info.basename = 'sourcerpg'
 info.author   = 'Freddukes AKA Pro Noob'
 info.url      = 'http://addons.eventscripts.com/addons/view/%s' % info.basename
@@ -56,7 +69,7 @@ config.text("""
 // ***** MESSAGE SETTINGS *****
 // ****************************
 // ****************************""", False)
-#debugMode     = config.cvar('srpg_debugMode', 0, "The level of debug. The higher the level the more SPAM in console and laggier it is. 0 = disable")
+debugMode     = config.cvar('srpg_debugMode', 0, "The level of debug. The higher the level the more SPAM in console and laggier it is. 0 = disable")
 prefix        = config.cvar('srpg_prefix', "[SourceRPG]", "The prefix of the script (will appear before every text message)")
 announceXp    = config.cvar('srpg_announceXp', 1, "Whether or not a player is told their XP and level each time they gain experience")
 spawnAnnounce = config.cvar('srpg_announceOnSpawn', 1, "Whether or not a player is informed about their xp and level status upon spawn")
@@ -215,7 +228,9 @@ class SQLiteManager(object):
         self.connection.text_factory = str
         self.cursor     = self.connection.cursor()
         
-        self.cursor.execute("PRAGMA journal_mode = OFF")
+        self.cursor.execute("PRAGMA journal_mode=OFF")
+        self.cursor.execute("PRAGMA locking_mode=EXCLUSIVE")
+        self.cursor.execute("PRAGMA synchronous=OFF")
         
         """ Create the table to hold the players global stats """
         self.cursor.execute("""\
@@ -1660,8 +1675,45 @@ class PopupCallbacks(object):
         if choice:
             players[userid].resetSkills()
 
+class DebugManager(object):
+    """
+    This class manages writing debug messages to text files for easier reading.
+    """
+    def __init__(self, path):
+        """
+        The default constructor, this should set up the file and raise an
+        exception if the file doesn't exist.
+        
+        @PARAM path - the path to the debug.
+        """
+        self.path = path
+        """ If the file doesn't exist, touch it """
+        open(self.path, 'w').close()
+        
+    def write(self, text, debugLevel, writeTime = True):
+        """
+        Writes a line to the debug file.
+        
+        @PARAM text       - the text to write to the file
+        @PARAM debugLevel - if the debug server variable allows it, then write it
+        @PARAM writeTime  - whether or not we should 
+        """
+        if int(debugMode) >= debugLevel:
+            es.dbgmsg(0, text)
+            
+            if writeTime is True:
+                """ Prepend the time to the text """
+                currentTime = time.strftime("%d/%m/%Y - %H:%M:%S")
+                text = currentTime + " - " + text
+            
+            """ Write to the file stream """
+            fileStream = open(self.path, 'a')
+            fileStream.write(text + "\n")
+            fileStream.close()
+
 """ Create the singletons to hold the object of the manager classes """
 databasePath = os.path.join( es.getAddonPath(info.basename), "players.sqlite" )
+debugPath    = os.path.join( es.getAddonPath(info.basename), "debuglog.txt"   )
 if int(turboMode):
     database = SQLiteManager(":memory:")
 else:
@@ -1671,7 +1723,8 @@ addons   = AddonManager()
 players  = PlayerManager()
 commands = CommandManager()
 popups   = PopupCallbacks()
-ranks    = RankManager() 
+ranks    = RankManager()
+debug    = DebugManager(debugPath)
 skillConfig = ConfigurationObject(os.path.join( es.getAddonPath(info.basename), "skills.cfg"))
 sayCommands = SayCommandsManager()
 weaponXp    = {}
@@ -1685,6 +1738,20 @@ def load():
     Executed when the script loads. Ensures that all the commands are registered
     and all the default popups loaded
     """
+    osPlatform = ("Windows" if os.name == "nt" else "Linux" if os.name == "posix" else os.name)
+    debug.write('Log file started at %s' % time.strftime("%A %d %B %Y - %H:%M:%S"), 0, False)
+    debug.write('\n*******************************************************',        0, False)
+    debug.write('SourceRPG: Turning your Server into a Role Playing Game',          0, False)
+    debug.write('SourceRPG: Current Version - %s' % info.version,                   0, False)
+    debug.write('SourceRPG: Made by %s' % info.author,                              0, False)
+    debug.write('\nSystem Info:',                                                   0, False)
+    debug.write('\tOS: %s' % osPlatform,                                            0, False)
+    debug.write('\tEventscripts Version: %s' % es.ServerVar('eventscripts_ver'),    0, False)
+    debug.write('\tCorelib Version: %s' % es.ServerVar('es_corelib_ver'),           0, False)
+    debug.write('\tEventscript Tools Version: %s' % es.ServerVar('est_version'),    0, False)
+    debug.write('\tEventscripts Noisy: %s' % es.ServerVar('eventscripts_noisy'),    0, False)
+    debug.write('\tPopuplib version: %s' % popuplib.info.version,                   0, False) 
+    
     if str( es.ServerVar('eventscripts_currentmap') ):
         es_map_start({})
     
@@ -1795,6 +1862,9 @@ or recovering them again!""")
     """ If we want to save by intervals then create a repeat to save the database """
     if str( saveType ) == "intervals":
         gamethread.delayedname(float(saveLength), 'sourcerpg_databasesave', saveDatabase)
+        
+    debug.write('SourceRPG: Finished Loading... Enjoy your stay!',           0, False)
+    debug.write('*******************************************************\n', 0, False)
     
 def unload():
     """
@@ -1933,13 +2003,20 @@ def round_end(event_var):
     
     @PARAM event_var - event variable instancce passed automatically
     """
+    debug.write("Round End Processing", 1)
     if not currentTurboMode:
+        debug.write("Normal mode is on", 1)
         if str(saveType).lower() == "round end":
+            debug.write("Attempting to save the database", 1)
             saveDatabase()
+            debug.write("Database successfully saved.", 1)
     for userid in es.getUseridList():
+        debug.write("Fetching player object for %s" % es.getplayername(userid), 2)
         player = players[userid]
         if player is not None:
+            debug.write("Object successfully fetched, delaying 4.8 seconds to reset default attributes", 2)
             gamethread.delayedname(4.8, 'sourcerpg_reset_%s' % player, player.resetPlayerDefaultAttributes)
+    debug.write("Round End has been processed\n", 1)
             
 def player_spawn(event_var):
     """
@@ -2164,22 +2241,28 @@ def saveDatabase():
     with any different values from the ones stored. After all the queries
     have taken place, the database will save to disk
     """
-    
+    debug.write("saveDatabase processing", 1)
     """ Only process if turbo mode is off """
     if not currentTurboMode:
+        debug.write("turbo mode off, process the save", 1)
         """ Update all the player's stats gained and commit the database"""
         for player in players:
+            debug.write("Commiting indivudal players to the virtual database: %s" % player.name, 2)
             player.commit()
+        debug.write("Attempting to save the database itself", 1)
         database.save()
-
+        debug.write("SQLite database saved", 1)
+        debug.write("Creating the event", 1)
         """ Create and fire the event """
         es.event("initialize", "sourcerpg_databasesaved")
         es.event("setstring",  "sourcerpg_databasesaved", "type", str(saveType) )
         es.event("fire",       "sourcerpg_databasesaved")
+        debug.write("Event fired", 1)
         
         """ Create a loop if we need to """
         if str( saveType ) == "intervals":
             gamethread.delayedname(float(saveLength), 'sourcerpg_databasesave', saveDatabase)
+    debug.write("saveDatabase processed", 1)
     
 def buildSkillMenu(userid):
     """
