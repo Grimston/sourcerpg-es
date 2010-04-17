@@ -1089,6 +1089,8 @@ class PlayerObject(object):
         
         If turbo mode is on, then it will make up default values.
         """
+        debug.write("Querying stats for player %s" % self.name, 3)
+        debug.write("Is turbo mode on? %s" % ({True:"Yes", False:"No"}[currentTurboMode]), 3)
         if not currentTurboMode:
             database.execute("SELECT * FROM Player WHERE UserID=?", (self.dbUserid,) )
                     
@@ -1103,6 +1105,12 @@ class PlayerObject(object):
             """
             result = database.fetchone()
             UserID, steamid, level, xp, credits, popup, name, lastconnected = result
+
+            debug.write("Steamid: %s" % steamid, 3)
+            debug.write("DB UserID: %s" % UserID, 3)
+            debug.write("xp: %s" % xp, 3)
+            debug.write("Credits %s" % credits, 3)
+            debug.write("Level: %s" % level, 3)
             
             for option in ('steamid', 'level', 'xp', 'credits', 'popup', 'name', 'lastconnected'):
                 self.oldAttributes[option] = self.currentAttributes[option] = locals()[option]
@@ -1114,6 +1122,9 @@ class PlayerObject(object):
             for skill in database.fetchall():
                 """ Each iteration will produce a 2 itemed tuple with skillrow and level """
                 skillName, level = skill
+
+                debug.write("Skill %s :: level %s" % (skillName, level))
+                
                 """ We only want to add the skill if it's currently loaded """
                 self.oldSkills[skillName] = self.currentSkills[skillName] = level
                     
