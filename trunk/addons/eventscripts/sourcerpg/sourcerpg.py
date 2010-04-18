@@ -1123,7 +1123,7 @@ class PlayerObject(object):
                 """ Each iteration will produce a 2 itemed tuple with skillrow and level """
                 skillName, level = skill
 
-                debug.write("Skill %s :: level %s" % (skillName, level))
+                debug.write("Skill %s :: level %s" % (skillName, level), 3)
                 
                 """ We only want to add the skill if it's currently loaded """
                 self.oldSkills[skillName] = self.currentSkills[skillName] = level
@@ -1431,7 +1431,7 @@ class ConfigurationObject(cfglib.AddonCFG):
         @PARAM internal - is this an internal call
         """
         if internal:
-            super(ConfigurationObject, self).execute(queuecmd)
+            cfglib.AddonCFG.execute(self, queuecmd)
             
     def write(self, internal = False):
         """
@@ -1441,7 +1441,7 @@ class ConfigurationObject(cfglib.AddonCFG):
         @PARAM internal - is this an internal call
         """
         if internal:
-            super(ConfigurationObject, self).write()
+            cfglib.AddonCFG.write(self)
         
 class CommandManager(object):
     """
@@ -1798,7 +1798,7 @@ def load():
     helpMenu.addoption(2, 'List of Commands')
     helpMenu.addoption(3, 'About SourceRPG Skills')
     helpMenu.addoption(4, 'Credit')
-    helpMenu.submenu(10, "rpgmenu")
+    helpMenu.submenu(10, "sourcerpg_rpgmenu")
     
     confirmation = popuplib.easymenu('sourcerpg_confirm', '_popup_choice', popups.confirm)
     confirmation.settitle("=== %s Reset Stats ===" % prefix)
