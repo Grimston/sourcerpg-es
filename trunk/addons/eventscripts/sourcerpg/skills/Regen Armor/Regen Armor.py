@@ -166,7 +166,7 @@ class RegenObject(object):
         @PARAM userid - the userid to get the health of
         @RETURN integer - amount of armor a user has
         """
-        return es.getplayerprop(userid, 'CCSPlayer.m_ArmorValue')
+        return es.getplayerprop(userid, 'CCSPlayer.m_ArmorValue') or 0
         
     @staticmethod
     def setArmor(userid, amount):
@@ -233,7 +233,7 @@ def player_hurt(event_var):
     """
     userid = event_var['userid']
     if not es.getplayerprop(userid, 'CBasePlayer.pl.deadflag'):
-        level  = sourcerpg.players[userid][skillName]
+        level = sourcerpg.players[userid][skillName]
         if level:
             if not regen[userid].isRunning():
                 regen[userid].startRegen(level, float(regenDelay) )
@@ -248,8 +248,9 @@ def sourcerpg_skillupgrade(event_var):
     """
     if event_var['skill'] == skillName:
         userid = event_var['userid']
-        regen[userid].stopRegen()
-        regen[userid].startRegen( int(event_var['level']), float(regenDelay) )
+        if not es.getplayerprop(userid, 'CBasePlayer.pl.deadflag'):
+            regen[userid].stopRegen()
+            regen[userid].startRegen( int(event_var['level']), float(regenDelay) )
         
 def sourcerpg_skilldowngrade(event_var):
     """
@@ -263,5 +264,5 @@ def sourcerpg_skilldowngrade(event_var):
         userid = event_var['userid']
         level  = int(event_var['level'])
         regen[userid].stopRegen()
-        if level:
+        if level and not es.getplayerprop(userid, 'CBasePlayer.pl.deadflag'):
             regen[userid].startRegen( level, float(regenDelay) )

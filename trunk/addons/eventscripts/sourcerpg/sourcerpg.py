@@ -10,19 +10,6 @@
 ####   THINGS COULD BREAK   #####
 #################################
 
-"""
-Bugs:
-
-
-10:55 - realchamp [O.C. Reg]: do you know why a single person's stats gets reset
-        every map change and if he disconnect and connects, his stats are reset?
-        
-Mattie Forums: Starcraft says that the script crashes on round_end - I presume
-               that this is due to the database saving... Dunno though, need
-               to make sure. Also, it is running from his own computer, I dunno
-               which distro. Maybe that is the cause?
-"""
-
 import os
 import random
 import time
@@ -44,7 +31,7 @@ import cmdlib
 # Set the addon info data
 info = es.AddonInfo()
 info.name     = 'SourceRPG'
-info.version  = '2.0.033'
+info.version  = '2.0.038'
 info.basename = 'sourcerpg'
 info.author   = 'Freddukes AKA Pro Noob'
 info.url      = 'http://addons.eventscripts.com/addons/view/%s' % info.basename

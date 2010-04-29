@@ -168,7 +168,7 @@ def hegrenade_detonate(event_var):
 
 def smokegrenade_detonate(event_var):
     """
-    Executed when a smoke grenade detonates. Deduct their he count if they have
+    Executed when a smoke grenade detonates. Deduct their smoke count if they have
     one.
 
     @PARAM event_var - an automatically passed event instnace
@@ -193,7 +193,12 @@ def clientFilter(userid, args):
         level  = player[skillName]
         if level:
             """ The player has recover weapons, get their active weapn and remove it """
-            weapon = weaponlib.getWeapon(playerlib.getPlayer(userid).get("weapon")).name # return formated weapon
+            weapon = weaponlib.getWeapon(playerlib.getPlayer(userid).get("weapon"))
+            if weapon is None:
+                # The user has no weapons, allow them to run the drop command
+                return True
+
+            weapon = weapon.name # return formated weapon
             
             if level >= 3 and weapon in weaponlib.getWeaponNameList("#primary"):
                 player['primary'] = None
