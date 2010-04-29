@@ -166,7 +166,7 @@ class PopupCallbacks(object):
         offlineMenu = popuplib.easymenu("sourcerpg_offlineplayers", "_popup_choice", self.chosenPlayer)
         offlineMenu.settitle("=== %s Admin ===" % sourcerpg.prefix)
         
-        sourcerpg.database.execute("SELECT steamid,name FROM playerstats ORDER BY name ASC")
+        sourcerpg.database.execute("SELECT steamid,name FROM Player ORDER BY name ASC")
         for steamid, name in sourcerpg.database.cursor.fetchall():
             offlineMenu.addoption(steamid, name)
             
