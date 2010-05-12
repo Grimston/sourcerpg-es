@@ -31,7 +31,7 @@ import cmdlib
 # Set the addon info data
 info = es.AddonInfo()
 info.name     = 'SourceRPG'
-info.version  = '2.0.040'
+info.version  = '2.0.041'
 info.basename = 'sourcerpg'
 info.author   = 'Freddukes AKA Pro Noob'
 info.url      = 'http://addons.eventscripts.com/addons/view/%s' % info.basename
