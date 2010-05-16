@@ -31,7 +31,7 @@ import cmdlib
 # Set the addon info data
 info = es.AddonInfo()
 info.name     = 'SourceRPG'
-info.version  = '2.0.043'
+info.version  = '2.0.045'
 info.basename = 'sourcerpg'
 info.author   = 'Freddukes AKA Pro Noob'
 info.url      = 'http://addons.eventscripts.com/addons/view/%s' % info.basename
@@ -1312,7 +1312,6 @@ class CommandsDatabase(object):
         back to 0 for the player, then slay to ensure that the attributes
         reset correctly
         """
-        es.msg("Reset Skills activated...")
         """ Reset the default attributes """
         self.player['level']   = 1
         self.player['xp']      = 0
@@ -1327,7 +1326,7 @@ class CommandsDatabase(object):
             self.player[skill.name] = 0
 
         """ Slay the player """
-        es.sexec(self.userid, 'kill')
+        es.server.queuecmd("damage %s %s" % (self.userid, es.getplayerprop(self.userid, "CBasePlayer.m_iHealth") ) )
         
         """ Notify the user """
         tell(self.userid, 'info deleted')
