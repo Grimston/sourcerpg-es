@@ -1,0 +1,112 @@
+Traceback (most recent call last):
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 426, in loadModuleAddon
+    addons.load(newaddon)
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 225, in load
+    addon.load()
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\mysql_connection.py", line 152, in load
+    sourcerpg.database = sourcerpg.DATABASE_STORAGE_METHOD()
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\mysql_connection.py", line 61, in __init__
+    self.connection = pymysql.connect(host=str(mysqlHostName), user=str(mysqlUser), passwd=str(mysqlPassword))
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\__init__.py", line 55, in Connect
+    return Connection(*args, **kwargs)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\connections.py", line 335, in __init__
+    self._connect()
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\connections.py", line 405, in _connect
+    self._request_authentication()
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\connections.py", line 436, in _request_authentication
+    self._send_authentication()
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\connections.py", line 458, in _send_authentication
+    auth_packet.check_error()
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\connections.py", line 244, in check_error
+    raise_mysql_exception(self.__data)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\exceptions.py", line 130, in raise_mysql_exception
+    _check_mysql_exception(errinfo)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\exceptions.py", line 126, in _check_mysql_exception
+    raise InternalError, ""
+InternalError
+05/16/10 18:26:48 * 05/16/10 18:28:22
+
+Traceback (most recent call last):
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 426, in loadModuleAddon
+    addons.load(newaddon)
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 225, in load
+    addon.load()
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\sourcerpg.py", line 1790, in load
+    database = DATABASE_STORAGE_METHOD(databasePath)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\mysql_connection.py", line 61, in __init__
+    self.connection = pymysql.connect(host=str(mysqlHostName), user=str(mysqlUser), passwd=str(mysqlPassword))
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\__init__.py", line 55, in Connect
+    return Connection(*args, **kwargs)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\connections.py", line 335, in __init__
+    self._connect()
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\connections.py", line 405, in _connect
+    self._request_authentication()
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\connections.py", line 436, in _request_authentication
+    self._send_authentication()
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\connections.py", line 458, in _send_authentication
+    auth_packet.check_error()
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\connections.py", line 244, in check_error
+    raise_mysql_exception(self.__data)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\exceptions.py", line 130, in raise_mysql_exception
+    _check_mysql_exception(errinfo)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\exceptions.py", line 126, in _check_mysql_exception
+    raise InternalError, ""
+InternalError
+05/16/10 18:26:48 * 05/16/10 18:28:22
+
+Traceback (most recent call last):
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 426, in loadModuleAddon
+    addons.load(newaddon)
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 225, in load
+    addon.load()
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\mysql_connection.py", line 153, in load
+    sourcerpg.database = sourcerpg.DATABASE_STORAGE_METHOD()
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\mysql_connection.py", line 62, in __init__
+    self.connection = pymysql.connect(host=str(mysqlHostName), user=str(mysqlUser), passwd=str(mysqlPassword))
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\__init__.py", line 55, in Connect
+    return Connection(*args, **kwargs)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\connections.py", line 335, in __init__
+    self._connect()
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\connections.py", line 405, in _connect
+    self._request_authentication()
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\connections.py", line 436, in _request_authentication
+    self._send_authentication()
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\connections.py", line 458, in _send_authentication
+    auth_packet.check_error()
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\connections.py", line 244, in check_error
+    raise_mysql_exception(self.__data)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\exceptions.py", line 130, in raise_mysql_exception
+    _check_mysql_exception(errinfo)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\exceptions.py", line 126, in _check_mysql_exception
+    raise InternalError, ""
+InternalError
+05/16/10 18:30:17
+
+Traceback (most recent call last):
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 426, in loadModuleAddon
+    addons.load(newaddon)
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 225, in load
+    addon.load()
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\sourcerpg.py", line 1790, in load
+    database = DATABASE_STORAGE_METHOD(databasePath)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\mysql_connection.py", line 62, in __init__
+    self.connection = pymysql.connect(host=str(mysqlHostName), user=str(mysqlUser), passwd=str(mysqlPassword))
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\__init__.py", line 55, in Connect
+    return Connection(*args, **kwargs)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\connections.py", line 335, in __init__
+    self._connect()
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\connections.py", line 405, in _connect
+    self._request_authentication()
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\connections.py", line 436, in _request_authentication
+    self._send_authentication()
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\connections.py", line 458, in _send_authentication
+    auth_packet.check_error()
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\connections.py", line 244, in check_error
+    raise_mysql_exception(self.__data)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\exceptions.py", line 130, in raise_mysql_exception
+    _check_mysql_exception(errinfo)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\exceptions.py", line 126, in _check_mysql_exception
+    raise InternalError, ""
+InternalError
+05/16/10 18:30:17
+

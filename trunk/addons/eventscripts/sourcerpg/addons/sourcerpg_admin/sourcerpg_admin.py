@@ -355,11 +355,11 @@ class PopupCallbacks(object):
                 Player is online, assign all levels to the player's PlayerObject
                 instance 
                 """
-                userid = es.getuserid(target)
+                targetid = es.getuserid(target)
                 for skill in sourcerpg.skills:
-                    sourcerpg.players[userid][skill.name] = int(skill.maxLevel)
+                    sourcerpg.players[targetid][skill.name] = int(skill.maxLevel)
                     es.event("initialize", "sourcerpg_skillupgrade")
-                    es.event("setint",     "sourcerpg_skillupgrade", "userid", userid)
+                    es.event("setint",     "sourcerpg_skillupgrade", "userid", targetid)
                     es.event("setint",     "sourcerpg_skillupgrade", "level", int(skill.maxLevel))
                     es.event("setint",     "sourcerpg_skillupgrade", "cost",  0)
                     es.event("setstring",  "sourcerpg_skillupgrade", "skill", str(skill.name))
@@ -370,18 +370,19 @@ class PopupCallbacks(object):
                 The player is offline so ensure that all the new values are
                 assigned
                 """
-                query = "SELECT UserID FROM Player WHERE steamid='%s'" % target
-                sourcerpg.database.execute(query)
+                query = "SELECT UserID FROM Player WHERE steamid=?"
+                sourcerpg.database.execute(query, target)
                 dbuserid = sourcerpg.database.fetchone()
                 for skill in sourcerpg.skills:
-                    query = "SELECT SkillID FROM Skill WHERE UserID=%s AND name='%s'" % (dbuserid, skill.name)
-                    sourcerpg.database.execute(query)
+                    query = "SELECT SkillID FROM Skill WHERE UserID=? AND name=?"
+                    sourcerpg.database.execute(query, dbuserid, skill.name)
                     dbskillid = sourcerpg.database.fetchone()
                     if dbskillid is None:
-                        query = "INSERT INTO Skill (name, level, UserID) VALUES ('%s', %s, %s)" % (skill.name, int(skill.maxLevel), dbuserid)
+                        query = "INSERT INTO Skill (name, level, UserID) VALUES (?, ?, ?)"
+                        sourcerpg.database.execute(query, skill.name, int(skill.maxLevel), dbuserid)
                     else:
-                        query = "UPDATE Skill SET level=%s WHERE SkillID=%s" % (int(skill.maxLevel), dbskillid)
-                    sourcerpg.database.execute(query)
+                        query = "UPDATE Skill SET level=? WHERE SkillID=?"
+                        sourcerpg.database.execute(query, int(skill.maxLevel, dbskillid))
                 self.chosenPlayer(userid, target, "sourcerpg_offlineplayers")
             tell(userid, 'maxed skills')
             
@@ -395,10 +396,10 @@ class PopupCallbacks(object):
                 Because the player is offline, the next time they join .
                 they'll be added to the database
                 """
-                sourcerpg.database.execute("SELECT UserID FROM Player WHERE steamid='" + target + "'")
-                userid = sourcerpg.database.fetchone()
-                sourcerpg.database.execute("DELETE FROM Player WHERE UserID=" + str(userid))
-                sourcerpg.database.execute("DELETE FROM Skill WHERE UserID=" + str(userid))
+                sourcerpg.database.execute("SELECT UserID FROM Player WHERE steamid=?", target)
+                targetid = sourcerpg.database.fetchone()
+                sourcerpg.database.execute("DELETE FROM Player WHERE UserID=?", targetid)
+                sourcerpg.database.execute("DELETE FROM Skill WHERE UserID=?", targetid)
         
     @staticmethod
     def buildPlayerSkillsMenu(popupName, target, function, returnPopup, upgrade=True):
@@ -489,11 +490,11 @@ class PopupCallbacks(object):
             """ Player is offline, make sure that you don't go over the max level """
             level = sourcerpg.database.getSkillLevel(target, choice)
             if level is None:
-                query = "SELECT UserID FROM Player WHERE steamid='%s'" % target
-                sourcerpg.database.execute(query)
+                query = "SELECT UserID FROM Player WHERE steamid=?"
+                sourcerpg.database.execute(query, target)
                 dbuserid = sourcerpg.database.fetchone()
-                query = "INSERT INTO Skill (name, UserID, level) VALUES ('%s', %s, 1)" % (choice, dbuserid)
-                sourcerpg.database.execute(query)
+                query = "INSERT INTO Skill (name, UserID, level) VALUES (?, ?, 1)"
+                sourcerpg.database.execute(query, choice, dbuserid)
             else:
                 skill = sourcerpg.skills[choice]
                 if level < int(skill.maxLevel):
@@ -520,18 +521,17 @@ class PopupCallbacks(object):
             if level > 0:
                 level -= 1
                 if level == 0:
-                    query = "SELECT UserID FROM Player WHERE steamid='%s'" % target
-                    sourcerpg.database.execute(query)
+                    query = "SELECT UserID FROM Player WHERE steamid=?"
+                    sourcerpg.database.execute(query, target)
                     dbuserid = sourcerpg.database.fetchone()
-                    query = "DELETE FROM Skill WHERE name='%s' AND UserID=%s" % (choice, dbuserid)
-                    sourcerpg.database.execute(query)
+                    query = "DELETE FROM Skill WHERE name=? AND UserID=?"
+                    sourcerpg.database.execute(query, choice, dbuserid)
                 else:
                     sourcerpg.database.updateSkillForPlayer(target, choice, level)
         #self.chosenPlayer(userid, target, 'sourcerpg_admin')
         self.buildPlayerSkillsMenu("sourcerpg_downgrade_player%s" % target, target, self.downgradeSkill, "sourcerpg_player%s" % target, False).send(userid)
         
-    @staticmethod
-    def addXp(userid, choice, popupid):
+    def addXp(self, userid, choice, popupid):
         """
         This method adds a cetain amount of experience to a player. If the player
         is online when we shall execute the method to add the experience; otherwise
@@ -558,8 +558,8 @@ class PopupCallbacks(object):
                 if userid is not None:
                     self.chosenPlayer(userid, target, "sourcerpg_onlineplayers")
             else:
-                query = "SELECT xp,level,name FROM Player WHERE steamid='%s'" % target
-                sourcerpg.database.execute(query)
+                query = "SELECT xp,level,name FROM Player WHERE steamid=?"
+                sourcerpg.database.execute(query, target)
                 xp, level, name = sourcerpg.database.fetchone()
                 xp += choice
                 amountOfLevels = 0
@@ -569,9 +569,11 @@ class PopupCallbacks(object):
                     amountOfLevels += 1
                     nextXpAmount += int(sourcerpg.xpIncrement)
                 if amountOfLevels:
-                    query = "UPDATE Player SET xp=%s, level=level+%s, credits=credits+%s WHERE steamid='%s'" % (xp, amountOfLevels, amountOfLevels * int(sourcerpg.creditsReceived), target)
+                    query = "UPDATE Player SET xp=?, level=level+?, credits=credits+? WHERE steamid=?"
+                    sourcerpg.database.execute(query, xp, amountOfLevels, amountOfLevels * int(sourcerpg.creditsReceived), target)
                 else:
-                    query = "UPDATE Player SET xp=%s WHERE steamid='%s'" % (xp, target)
+                    query = "UPDATE Player SET xp=? WHERE steamid=?"
+                    sourcerpg.database.execute(query, xp, target)
                 sourcerpg.database.execute(query)
 
                 tokens['name'] = name
@@ -584,8 +586,7 @@ class PopupCallbacks(object):
             es.escinputbox(30, userid, '=== %s Add Xp ===' % sourcerpg.prefix, 
                 'Enter the amount' , 'rpgaddxp" "%s' % target)
         
-    @staticmethod
-    def addLevels(userid, choice, popupid):
+    def addLevels(self, userid, choice, popupid):
         """
         This method adds a cetain amount of levels to a player by a given
         steamid. If the player is currently online then add the levels by
@@ -610,10 +611,10 @@ class PopupCallbacks(object):
                 if userid is not None:
                     self.chosenPlayer(userid, target, "sourcerpg_onlineplayers")
             else:
-                query = "UPDATE Player SET level=level+%s, credits=credits+%s WHERE steamid='%s'" % (choice, (choice * sourcerpg.creditsReceived), target)
-                sourcerpg.database.execute(query)
-                query = "SELECT name FROM Player WHERE steamid='%s'" % target
-                sourcerpg.database.execute(query)
+                query = "UPDATE Player SET level=level+?, credits=credits+? WHERE steamid=?"
+                sourcerpg.database.execute(query, choice, (choice * sourcerpg.creditsReceived), target)
+                query = "SELECT name FROM Player WHERE steamid=?"
+                sourcerpg.database.execute(query, target)
                 name = sourcerpg.database.fetchone()
                 tokens['name'] = name
                 if userid is not None:
@@ -625,8 +626,7 @@ class PopupCallbacks(object):
             es.escinputbox(30, userid, '=== %s Add Xp ===' % sourcerpg.prefix,
                 'Enter the amount' , 'rpgaddlevels" "%s' % target)
         
-    @staticmethod
-    def addCredits(userid, choice, popupid):
+    def addCredits(self, userid, choice, popupid):
         """
         This method adds a cetain amount of credits to a player by a given
         steamid. If the player is currently online then add the credits by
@@ -651,10 +651,10 @@ class PopupCallbacks(object):
                 if userid is not None:
                     self.chosenPlayer(userid, target, "sourcerpg_onlineplayers")
             else:
-                query = "UPDATE Player SET credits=credits+%s WHERE steamid='%s'" % (choice, target)
-                sourcerpg.database.execute(query)
-                query = "SELECT name FROM Player WHERE steamid='%s'" % target
-                sourcerpg.database.execute(query)
+                query = "UPDATE Player SET credits=credits+? WHERE steamid=?"
+                sourcerpg.database.execute(query, choice, target)
+                query = "SELECT name FROM Player WHERE steamid=?"
+                sourcerpg.database.execute(query, target)
                 tokens['name'] = sourcerpg.database.fetchone()
                 if userid is not None:
                     self.chosenPlayer(userid, target, "sourcerpg_offlineplayers")
@@ -701,8 +701,8 @@ class PopupCallbacks(object):
 
 
         """ Query the stats of the player """
-        query = "SELECT name,level,xp,credits FROM Player WHERE steamid='%s'" % steamid
-        sourcerpg.database.execute(query)
+        query = "SELECT name,level,xp,credits FROM Player WHERE steamid=?"
+        sourcerpg.database.execute(query, steamid)
         values['name'], values['level'], values['xp'], values['credits'] = sourcerpg.database.cursor.fetchone()
         
         """ Query the levels of the current loaded skills """

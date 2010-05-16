@@ -265,7 +265,7 @@ CREATE TABLE IF NOT EXISTS Skill (
         key = str(key)
         if key in self.players:
             return True
-        self.cursor.execute("SELECT level FROM Player WHERE steamid=?", (key,) )
+        self.execute("SELECT level FROM Player WHERE steamid=?", key)
         result = self.cursor.fetchone()
         if bool( result ):
             self.players.append(key)
@@ -280,23 +280,17 @@ CREATE TABLE IF NOT EXISTS Skill (
         
         @RETURN yield object - string objects which represent player's steamids
         """
-        self.cursor.execute("SELECT steamid FROM Player")
+        self.execute("SELECT steamid FROM Player")
         for steamid in self.cursor.fetchall():
             yield steamid[0]
         
-    def execute(self, parseString, variables=None):
+    def execute(self, parseString, *args):
         """
         A wrapper function to simulate the execute() method of a cursor object.
         
         @PARAM parseString - the string query line of a SQLite statement
-        @PARAM variables   - the list of variables to inject into the SQLite query
         """
-        if variables is not None:
-            if not hasattr(variables, "__iter__"):
-                variables = (variables,)
-            self.cursor.execute(parseString, variables)
-        else:
-            self.cursor.execute(parseString)
+        self.cursor.execute(parseString, args)
         
     def addPlayer(self, steamid, name):
         """
@@ -306,8 +300,7 @@ CREATE TABLE IF NOT EXISTS Skill (
         @PARAM steamid - the string value of a players steamid
         @PARAM name - the string value of a players name
         """
-        name = str(name).replace("'", "''")
-        self.cursor.execute("INSERT OR IGNORE INTO Player (steamid, popup, credits, name, lastconnected) VALUES (?,?,?,?,?)", (steamid, int(popupStatus), int(startCredits), name, time.time() ) )
+        self.execute("INSERT INTO Player (steamid, popup, credits, name, lastconnected) VALUES (?,?,?,?,?)", steamid, int(popupStatus), int(startCredits), name, int(time.time()) )
         return self.cursor.lastrowid
             
     def getUserIdFromSteamId(self, steamId):
@@ -317,7 +310,7 @@ CREATE TABLE IF NOT EXISTS Skill (
         @PARAM steamId - the steamid of the player
         @RETURN INTEGER - the row, if the user doesn't exist, then return None
         """
-        self.cursor.execute("SELECT UserID FROM Player WHERE steamid=?", (steamId,) )
+        self.execute("SELECT UserID FROM Player WHERE steamid=?", steamId)
         value = self.cursor.fetchone()
         if value is None:
             return None
@@ -334,7 +327,7 @@ CREATE TABLE IF NOT EXISTS Skill (
         """
         if not isinstance(userid, int):
             userid = self.getUserIdFromSteamId(userid)
-        self.cursor.execute("INSERT OR IGNORE INTO Skill (UserID, name, level) VALUES (?,?,?)", (userid, name, level))
+        self.execute("INSERT OR IGNORE INTO Skill (UserID, name, level) VALUES (?,?,?)", userid, name, level)
         return self.cursor.lastrowid
         
     def updateSkillForPlayer(self, userid, name, level):
@@ -347,7 +340,7 @@ CREATE TABLE IF NOT EXISTS Skill (
         """
         if not isinstance(userid, int):
             userid = self.getUserIdFromSteamId(userid)
-        self.cursor.execute("UPDATE Skill SET level=? WHERE UserID=? AND name=?", (level, userid, name) )
+        self.execute("UPDATE Skill SET level=? WHERE UserID=? AND name=?", level, userid, name)
             
     def checkPlayerSkillExists(self, userid, skillName):
         """
@@ -359,7 +352,7 @@ CREATE TABLE IF NOT EXISTS Skill (
         """
         if not isinstance(userid, int):
             userid = self.getUserIdFromSteamId(userid)
-        self.cursor.execute("SELECT level FROM Skill WHERE UserID=? AND name=?", (userid, skillName))
+        self.execute("SELECT level FROM Skill WHERE UserID=? AND name=?", userid, skillName)
         return bool( self.fetchone() )
         
     def getPlayerStat(self, userid, statType):
@@ -377,7 +370,7 @@ CREATE TABLE IF NOT EXISTS Skill (
             query = "SELECT " + ",".join( map( str, statType) ) + " FROM Player WHERE UserID=?"
         else:
             query = "SELECT " + str( statType ) + " FROM Player WHERE UserID=?"
-        self.execute(query, (userid,) )
+        self.execute(query, userid)
         return self.fetchone()
         
     def getSkillLevel(self, userid, skillName):
@@ -391,8 +384,8 @@ CREATE TABLE IF NOT EXISTS Skill (
         if not isinstance(userid, int):
             userid = self.getUserIdFromSteamId(userid)
 
-        self.cursor.execute("SELECT level FROM Skill WHERE UserID=? AND name=?",
-                                (userid, skillName))
+        self.execute("SELECT level FROM Skill WHERE UserID=? AND name=?",
+                                userid, skillName)
         value = self.cursor.fetchone()
         if value is None:
             return None
@@ -421,7 +414,7 @@ CREATE TABLE IF NOT EXISTS Skill (
                 keys += "%s='%s'," % (key, value)
             keys = keys[:-1]
             query = "UPDATE " + str(table) + " SET " + keys + " WHERE " + str(primaryKeyName) + "='" + str(primaryKeyValue) + "'"
-            self.cursor.execute(query)
+            self.execute(query)
         
         
     def increment(self, table, primaryKeyName, primaryKeyValue, options):
@@ -444,9 +437,7 @@ CREATE TABLE IF NOT EXISTS Skill (
                 value = value.replace("'", "''")
             keys += "%s=%s+%i," % (key, key, value)
         keys = keys[:-1]
-        self.cursor.execute("""\
-        UPDATE """ + str(table) + """ SET """ + keys + """ WHERE """ + primaryKeyName
-        + """='""" + primaryKeyValue + """'""")
+        self.execute("UPDATE ? SET %s WHERE ?=?+?" % keys, table, primaryKeyName, primaryKeyName, primaryKeyValue)
         
     def query(self, table, primaryKeyName, primaryKeyValue, options):
         """
@@ -468,7 +459,7 @@ CREATE TABLE IF NOT EXISTS Skill (
                     " WHERE " + primaryKeyName + "='" + primaryKeyValue + "'"
                     
         """ Execute the SQL statement and fetch the result """
-        self.cursor.execute(query)
+        self.execute(query)
         return self.fetchone()
         
     def fetchall(self):
@@ -484,10 +475,20 @@ CREATE TABLE IF NOT EXISTS Skill (
         for value in self.cursor.fetchall():
             if isinstance(value, tuple):
                 if len(value) > 1:
-                    trueValues.append(value)
+                    tempValues = []
+                    for tempValue in value:
+                        if isinstance(tempValue, long):
+                            tempValue = int(tempValue)
+                        tempValues.append(tempValue)
+                    trueValues.append(tempValues)
                 else:
-                    trueValues.append(value[0])
+                    if isinstance(value[0], long):
+                        trueValues.append(int(value[0]))
+                    else:
+                        trueValues.append(value[0])
             else:
+                if isinstance(value, long):
+                    value = int(value)
                 trueValues.append(value)
         return trueValues
         
@@ -502,8 +503,22 @@ CREATE TABLE IF NOT EXISTS Skill (
         """
         result = self.cursor.fetchone()
         if hasattr(result, "__iter__"):
-            if len(result) == 1: 
-                return result[0]
+            if len(result) == 1:
+                trueResults = result[0]
+                if isinstance(trueResults, long):
+                    trueResults = int(trueResults)
+                return trueResults
+            
+            else:
+                trueResults = []
+                for trueResult in result:
+                    if isinstance(trueResult, long):
+                        trueResult = int(trueResult)
+                    trueResults.append(trueResult)
+                return trueResults
+
+        if isinstance(result, long):
+            result = int(result)
         return result    
         
     def save(self):
@@ -521,8 +536,8 @@ CREATE TABLE IF NOT EXISTS Skill (
         
         @PARAM saveDatabase - optional value, if True, it will commit the database
         """
-        self.cursor.execute("DROP TABLE Player")
-        self.cursor.execute("DROP TABLE Skill")
+        self.execute("DROP TABLE Player")
+        self.execute("DROP TABLE Skill")
         if saveDatabase:
             self.save()
         
@@ -983,7 +998,7 @@ class PlayerObject(object):
         if item in self.currentSkills:
             level = self.currentSkills[item]
             if item in skills:
-                if level > skills[item].maxLevel:
+                if level > int(skills[item].maxLevel):
                     level = int(skills[item].maxLevel)
             return level
         if item in self.playerAttributes:
@@ -1048,22 +1063,22 @@ class PlayerObject(object):
                 if key in self.oldAttributes:
                     # We only want to update current attributes.
                     if value <> self.oldAttributes[key]:
-                        database.cursor.execute("UPDATE Player SET %s=? WHERE UserID=?" % key,
-                                                 (value,
-                                                  self.dbUserid) )            
+                        database.execute("UPDATE Player SET %s=? WHERE UserID=?" % key,
+                                                  value,
+                                                  self.dbUserid)           
             """ Update the skills """
             for key, value in self.currentSkills.iteritems():
                 if key not in self.oldSkills:
-                    database.cursor.execute("INSERT INTO Skill (name, UserID, level) VALUES (?,?,?)",
-                                            (key,
+                    database.execute("INSERT INTO Skill (name, UserID, level) VALUES (?,?,?)",
+                                             key,
                                              self.dbUserid,
-                                             value) )
+                                             value)
                 else:
                     if value <> self.oldSkills[key]:
-                        database.cursor.execute("UPDATE Skill SET level=? WHERE UserID=? AND name=?",
-                                                    (value,
+                        database.execute("UPDATE Skill SET level=? WHERE UserID=? AND name=?",
+                                                     value,
                                                      self.dbUserid,
-                                                     key ) )
+                                                     key )
             
             """ Make sure the old attributes are updates """
             self.oldAttributes = self.currentAttributes.copy()
@@ -1079,7 +1094,7 @@ class PlayerObject(object):
         debug.write("Querying stats for player %s" % self.name, 3)
         debug.write("Is turbo mode on? %s" % ({True:"Yes", False:"No"}[currentTurboMode]), 3)
         if not currentTurboMode:
-            database.execute("SELECT * FROM Player WHERE UserID=?", (self.dbUserid,) )
+            database.execute("SELECT * FROM Player WHERE UserID=?", self.dbUserid)
                     
             """ 
             ~NOTE: Nasty, explicitly defining may break in future updates if I
@@ -1103,7 +1118,7 @@ class PlayerObject(object):
                 self.oldAttributes[option] = self.currentAttributes[option] = locals()[option]
                 
             """ Retrieve the skills id and level from the database """
-            database.execute("SELECT name,level FROM Skill WHERE UserID=?", (self.dbUserid,) )
+            database.execute("SELECT name,level FROM Skill WHERE UserID=?", self.dbUserid )
             
             """ Iterate through all the skills returned """
             for skill in database.fetchall():
@@ -1122,7 +1137,7 @@ class PlayerObject(object):
             "xp"      : 0,
             "credits" : int(startCredits),
             "popup"   : int(popupStatus),
-            "lastconnected" : time.time()
+            "lastconnected" : int(time.time())
             }
             for key, value in defaultValues.iteritems():
                 self.oldAttributes[key] = self.currentAttributes[key] = value
@@ -1297,19 +1312,20 @@ class CommandsDatabase(object):
         back to 0 for the player, then slay to ensure that the attributes
         reset correctly
         """
-        
+        es.msg("Reset Skills activated...")
         """ Reset the default attributes """
         self.player['level']   = 1
         self.player['xp']      = 0
         self.player['credits'] = int(startCredits)
         self.player['popup']   = int(popupStatus)
         self.player['name']    = self.player.name
-        self.player['lastconnected'] = time.time()
+        self.player['lastconnected'] = int(time.time())
+
         
         """ Iterate through the skills list then set each skill to 0 """
         for skill in skills:
             self.player[skill.name] = 0
-            
+
         """ Slay the player """
         es.sexec(self.userid, 'kill')
         
@@ -1346,7 +1362,7 @@ class RankManager(object):
         """
         Updates the ranks with the latest information from the sqlite database
         """
-        database.cursor.execute("SELECT steamid FROM Player ORDER BY level DESC,xp DESC")
+        database.execute("SELECT steamid FROM Player ORDER BY level DESC,xp DESC")
         results = database.cursor.fetchall()
         self.ranks = []
         for steamid in results:
@@ -1670,7 +1686,9 @@ class PopupCallbacks(object):
         choice to confirm if they want to reset their skills or not. If they
         do, choice will be True, otherwise False.
         """
+        es.msg("Userid %s (%s) executed choice %s" % (userid, es.getplayername(userid), choice))
         if choice:
+            es.msg("Resetting skills...")
             players[userid].resetSkills()
 
 class DebugManager(object):
@@ -1710,18 +1728,15 @@ class DebugManager(object):
             fileStream.close()
 
 """ Create the singletons to hold the object of the manager classes """
+DATABASE_STORAGE_METHOD = SQLiteManager
+database = None
 databasePath = os.path.join( es.getAddonPath(info.basename), "players.sqlite" )
 debugPath    = os.path.join( es.getAddonPath(info.basename), "debuglog.txt"   )
-if int(turboMode):
-    database = SQLiteManager(":memory:")
-else:
-    database = SQLiteManager(databasePath)
 skills   = SkillManager()
 addons   = AddonManager()
 players  = PlayerManager()
 commands = CommandManager()
 popups   = PopupCallbacks()
-ranks    = RankManager()
 debug    = DebugManager(debugPath)
 skillConfig = ConfigurationObject(os.path.join( es.getAddonPath(info.basename), "skills.cfg"))
 sayCommands = SayCommandsManager()
@@ -1736,6 +1751,8 @@ def load():
     Executed when the script loads. Ensures that all the commands are registered
     and all the default popups loaded
     """
+    global database
+    global ranks
     osPlatform = ("Windows" if os.name == "nt" else "Linux" if os.name == "posix" else os.name)
     debug.write('Log file started at %s' % time.strftime("%A %d %B %Y - %H:%M:%S"), 0, False)
     debug.write('\n*******************************************************',        0, False)
@@ -1749,9 +1766,6 @@ def load():
     debug.write('\tEventscript Tools Version: %s' % es.ServerVar('est_version'),    0, False)
     debug.write('\tEventscripts Noisy: %s' % es.ServerVar('eventscripts_noisy'),    0, False)
     debug.write('\tPopuplib version: %s' % popuplib.info.version,                   0, False) 
-    
-    if str( es.ServerVar('eventscripts_currentmap') ):
-        es_map_start({})
     
     cmdlib.registerServerCommand("srpg", commands.mainCommand,    "srpg <command> [args]")
     
@@ -1769,7 +1783,14 @@ def load():
     skillConfig.execute(True, True)
     
     es.server.cmd('es_xmexec ../addons/eventscripts/%s/addon_loader.cfg' % info.basename)
-    
+
+    if int(turboMode):
+        database = DATABASE_STORAGE_METHOD(":memory:")
+    else:
+        database = DATABASE_STORAGE_METHOD(databasePath)
+
+    ranks = RankManager()
+
     """ Create the default popups which aren't unique to players """
     rpgmenu = popuplib.easymenu("sourcerpg_rpgmenu", "_popup_choice", popups.rpgmenu)
     rpgmenu.settitle("=== %s Menu ===" % prefix)
@@ -1856,7 +1877,10 @@ or recovering them again!""")
             players.addPlayer( player )
             
         es.server.queuecmd('mp_restartgame 1')
-    
+
+    if str( es.ServerVar('eventscripts_currentmap') ):
+        es_map_start({})
+
     """ If we want to save by intervals then create a repeat to save the database """
     if str( saveType ) == "intervals":
         gamethread.delayedname(float(saveLength), 'sourcerpg_databasesave', saveDatabase)
@@ -1949,13 +1973,13 @@ def es_map_start(event_var):
         rpgTop5Popup.addline("0. Close")
     
     """ Delete all inactive people """
-    currentTime = time.time()
+    currentTime = int(time.time())
     currentTime -= ( float(inactivityCounter) * 86400 ) # 86400 = seconds in a day
     
-    database.execute("SELECT UserID FROM Player WHERE lastconnected < ?", (currentTime,) )
+    database.execute("SELECT UserID FROM Player WHERE lastconnected < ?", int(currentTime) )
     for userid in database.fetchall():
-        database.execute("DELETE FROM Player WHERE UserID=?", (userid,) )
-        database.execute("DELETE FROM Skill WHERE UserID=?", (userid,) )
+        database.execute("DELETE FROM Player WHERE UserID=?", userid )
+        database.execute("DELETE FROM Skill WHERE UserID=?", userid )
     
 def player_activate(event_var):
     """
@@ -1981,7 +2005,7 @@ def player_disconnect(event_var):
     userid = event_var['userid']
     gamethread.cancelDelayed('sourcerpg_reset_%s' % userid)
     if userid in players:
-        players[userid]['lastconnected'] = time.time()
+        players[userid]['lastconnected'] = int(time.time())
         del players[userid] # call's the destructor
     
 def player_changename(event_var):
@@ -2295,13 +2319,13 @@ def checkSkillForUpgrading(userid, choice, popupid, resend = True, useCredits = 
     """
     player = players[userid]
     skill  = skills[choice]
-    creditsRequired = player[skill.name] * int(skill.creditIncrement) + int(skill.startCredit)
+    creditsRequired = player[str(skill.name)] * int(skill.creditIncrement) + int(skill.startCredit)
     
     if player['credits'] >= creditsRequired or useCredits is not True:
         """ Remove the credits and increment the skill """
         if useCredits is True:
             player['credits'] -= creditsRequired
-        player[skill.name] += 1
+        player[str(skill.name)] += 1
         
         """ If the skill upgrade sound is not blank, emmit it from the player """
         if str(skillUpgradeSound):
@@ -2310,15 +2334,15 @@ def checkSkillForUpgrading(userid, choice, popupid, resend = True, useCredits = 
         """ Notify the user of their purchase """
         tokens = {}
         tokens['level'] = player[skill.name]
-        tokens['skill'] = skill.name 
+        tokens['skill'] = str(skill.name)
         tell(userid, 'skill upgrade', tokens)
         
         """ Fire the skill upgrade event """
         es.event("initialize", "sourcerpg_skillupgrade")
         es.event("setint",     "sourcerpg_skillupgrade", "userid", userid)
-        es.event("setint",     "sourcerpg_skillupgrade", "level", player[skill.name])
+        es.event("setint",     "sourcerpg_skillupgrade", "level", player[str(skill.name)])
         es.event("setint",     "sourcerpg_skillupgrade", "cost",  creditsRequired)
-        es.event("setstring",  "sourcerpg_skillupgrade", "skill", skill.name)
+        es.event("setstring",  "sourcerpg_skillupgrade", "skill", str(skill.name))
         es.event("fire",       "sourcerpg_skillupgrade")
         
     else:
@@ -2347,7 +2371,7 @@ def buildSellMenu(userid):
     sellMenu = popuplib.easymenu("sourcerpg_sellmenu_user%s" % userid, "_popup_choice", checkSkillForSelling)
     sellMenu.settitle("Select a skill to sell:\nCredits: %s\nPage: " % player["credits"])
     for skill in skills:
-        level = player[skill.name]
+        level = player[str(skill.name)]
         if level > 0:
             sellMenu.addoption(skill.name, skill.name + " => %s [GAIN %s]" % (level - 1, int( ( (level - 1) * int(skill.creditIncrement) + int(skill.startCredit) ) * float(sellPercentage) / 100.) ) )
         else:

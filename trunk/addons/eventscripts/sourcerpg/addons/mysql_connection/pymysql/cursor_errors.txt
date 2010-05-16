@@ -1,0 +1,128 @@
+Traceback (most recent call last):
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 426, in loadModuleAddon
+    addons.load(newaddon)
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 225, in load
+    addon.load()
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\sourcerpg.py", line 1867, in load
+    es_map_start({})
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\sourcerpg.py", line 1964, in es_map_start
+    database.execute("SELECT UserID FROM Player WHERE lastconnected < ?", (currentTime,) )
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\sourcerpg.py", line 297, in execute
+    self.cursor.execute(parseString, variables)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\cursor.py", line 74, in execute
+    query = query % conn.escape(args)
+TypeError: not all arguments converted during string formatting
+05/16/10 15:14:28
+
+Traceback (most recent call last):
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 426, in loadModuleAddon
+    addons.load(newaddon)
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 225, in load
+    addon.load()
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\sourcerpg.py", line 1766, in load
+    database = DATABASE_STORAGE_METHOD(databasePath)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\mysql_connection.py", line 24, in __init__
+    self.cursor.execute("USE ?", "sourcerpg_players")
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\cursor.py", line 74, in execute
+    query = query % conn.escape(args)
+TypeError: not all arguments converted during string formatting
+05/16/10 15:26:03
+
+Traceback (most recent call last):
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 426, in loadModuleAddon
+    addons.load(newaddon)
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 225, in load
+    addon.load()
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\sourcerpg.py", line 1766, in load
+    database = DATABASE_STORAGE_METHOD(databasePath)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\mysql_connection.py", line 24, in __init__
+    self.execute("USE ?", "sourcerpg_players")
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\mysql_connection.py", line 62, in execute
+    self.cursor.execute(statement, args)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\cursor.py", line 74, in execute
+    query = query % conn.escape(args)
+TypeError: not all arguments converted during string formatting
+05/16/10 15:27:33
+
+Traceback (most recent call last):
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 426, in loadModuleAddon
+    addons.load(newaddon)
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 225, in load
+    addon.load()
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\sourcerpg.py", line 1766, in load
+    database = DATABASE_STORAGE_METHOD(databasePath)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\mysql_connection.py", line 24, in __init__
+    self.execute("USE ?", "sourcerpg_players")
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\mysql_connection.py", line 63, in execute
+    self.cursor.execute(statement, args)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\cursor.py", line 74, in execute
+    query = query % conn.escape(args)
+TypeError: not all arguments converted during string formatting
+05/16/10 15:28:54
+
+Traceback (most recent call last):
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 269, in triggerEvent
+    self.EventListeners[eventname][listener](event_var)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\sourcerpg.py", line 2010, in round_end
+    saveDatabase()
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\sourcerpg.py", line 2250, in saveDatabase
+    player.commit()
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\sourcerpg.py", line 1045, in commit
+    self.dbUserid) )
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\cursor.py", line 74, in execute
+    query = query % conn.escape(args)
+TypeError: not all arguments converted during string formatting
+05/16/10 16:03:06
+
+Traceback (most recent call last):
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 341, in callBlock
+    self.Blocks[blockname]()
+  File "F:\SRCDS\cstrike\addons\eventscripts\_libs\python\cmdlib.py", line 173, in callbackServer
+    cmd_manager.callback(cmd_manager.server_commands, es.getargv(0).lower())
+  File "F:\SRCDS\cstrike\addons\eventscripts\_libs\python\cmdlib.py", line 112, in callback
+    cmdlist[name].execute(self.CMDArgs(es.getargv(x) for x in xrange(1, es.getargc())))
+  File "F:\SRCDS\cstrike\addons\eventscripts\_libs\python\cmdlib.py", line 207, in execute
+    self.callback(args)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\mysql_connection.py", line 111, in convertFromSQLite
+    sourcerpg.database.execute(uidinsert, player[1:])
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\mysql_connection.py", line 147, in execute
+    self.cursor.execute(statement, trueArgs)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\cursor.py", line 74, in execute
+    query = query % conn.escape(args)
+TypeError: not enough arguments for format string
+05/16/10 22:11:16
+
+Traceback (most recent call last):
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 341, in callBlock
+    self.Blocks[blockname]()
+  File "F:\SRCDS\cstrike\addons\eventscripts\_libs\python\cmdlib.py", line 173, in callbackServer
+    cmd_manager.callback(cmd_manager.server_commands, es.getargv(0).lower())
+  File "F:\SRCDS\cstrike\addons\eventscripts\_libs\python\cmdlib.py", line 112, in callback
+    cmdlist[name].execute(self.CMDArgs(es.getargv(x) for x in xrange(1, es.getargc())))
+  File "F:\SRCDS\cstrike\addons\eventscripts\_libs\python\cmdlib.py", line 207, in execute
+    self.callback(args)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\mysql_connection.py", line 112, in convertFromSQLite
+    sourcerpg.database.execute(uidinsert, player[1:])
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\mysql_connection.py", line 148, in execute
+    self.cursor.execute(statement, trueArgs)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\cursor.py", line 74, in execute
+    query = query % conn.escape(args)
+TypeError: not enough arguments for format string
+05/16/10 22:16:36
+
+Traceback (most recent call last):
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 341, in callBlock
+    self.Blocks[blockname]()
+  File "F:\SRCDS\cstrike\addons\eventscripts\_libs\python\cmdlib.py", line 173, in callbackServer
+    cmd_manager.callback(cmd_manager.server_commands, es.getargv(0).lower())
+  File "F:\SRCDS\cstrike\addons\eventscripts\_libs\python\cmdlib.py", line 112, in callback
+    cmdlist[name].execute(self.CMDArgs(es.getargv(x) for x in xrange(1, es.getargc())))
+  File "F:\SRCDS\cstrike\addons\eventscripts\_libs\python\cmdlib.py", line 207, in execute
+    self.callback(args)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\mysql_connection.py", line 112, in convertFromSQLite
+    sourcerpg.database.cursor.execute(uidinsert, player[1:])
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\cursor.py", line 74, in execute
+    query = query % conn.escape(args)
+TypeError: not enough arguments for format string
+05/16/10 22:17:42
+

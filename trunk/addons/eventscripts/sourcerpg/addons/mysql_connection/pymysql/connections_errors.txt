@@ -1,0 +1,330 @@
+Traceback (most recent call last):
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 426, in loadModuleAddon
+    addons.load(newaddon)
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 225, in load
+    addon.load()
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\sourcerpg.py", line 1775, in load
+    database = DATABASE_STORAGE_METHOD(databasePath)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\mysql_connection.py", line 20, in __init__
+    self.connection = pymysql.connect(hostname="localhost", user="root", passwd="nitrah")
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\__init__.py", line 55, in Connect
+    return Connection(*args, **kwargs)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\connections.py", line 320, in __init__
+    self.host = kwargs['host']
+KeyError: 'host'
+05/16/10 15:00:51
+
+Traceback (most recent call last):
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 426, in loadModuleAddon
+    addons.load(newaddon)
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 225, in load
+    addon.load()
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\sourcerpg.py", line 1775, in load
+    database = DATABASE_STORAGE_METHOD(databasePath)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\mysql_connection.py", line 34, in __init__
+    )""")
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\cursor.py", line 82, in execute
+    self.errorhandler(self, exc, value)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\connections.py", line 108, in defaulterrorhandler
+    raise errorclass, errorvalue
+InternalError
+05/16/10 15:01:51
+
+Traceback (most recent call last):
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 426, in loadModuleAddon
+    addons.load(newaddon)
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 225, in load
+    addon.load()
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\sourcerpg.py", line 1775, in load
+    database = DATABASE_STORAGE_METHOD(databasePath)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\mysql_connection.py", line 24, in __init__
+    self.cursor.execute("SELECT DATABASE %s", "sourcerpg_players")
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\cursor.py", line 82, in execute
+    self.errorhandler(self, exc, value)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\connections.py", line 108, in defaulterrorhandler
+    raise errorclass, errorvalue
+InternalError
+05/16/10 15:08:15
+
+Traceback (most recent call last):
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 426, in loadModuleAddon
+    addons.load(newaddon)
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 225, in load
+    addon.load()
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\sourcerpg.py", line 1775, in load
+    database = DATABASE_STORAGE_METHOD(databasePath)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\mysql_connection.py", line 37, in __init__
+    )""")
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\cursor.py", line 82, in execute
+    self.errorhandler(self, exc, value)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\connections.py", line 108, in defaulterrorhandler
+    raise errorclass, errorvalue
+InternalError
+05/16/10 15:10:27
+
+Traceback (most recent call last):
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 426, in loadModuleAddon
+    addons.load(newaddon)
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 225, in load
+    addon.load()
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\sourcerpg.py", line 1858, in load
+    es_map_start({})
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\sourcerpg.py", line 1955, in es_map_start
+    database.execute("SELECT UserID FROM Player WHERE lastconnected < ?", (currentTime,) )
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\mysql_connection.py", line 63, in execute
+    self.cursor.execute(statement, args)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\cursor.py", line 82, in execute
+    self.errorhandler(self, exc, value)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\connections.py", line 108, in defaulterrorhandler
+    raise errorclass, errorvalue
+InternalError
+05/16/10 15:30:03
+
+Traceback (most recent call last):
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 269, in triggerEvent
+    self.EventListeners[eventname][listener](event_var)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\sourcerpg.py", line 1970, in player_activate
+    players.addPlayer( event_var['userid'] )
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\sourcerpg.py", line 830, in addPlayer
+    self.players[int(userid)] = PlayerObject(userid)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\sourcerpg.py", line 886, in __init__
+    self.dbUserid = database.getUserIdFromSteamId(self.steamid)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\sourcerpg.py", line 313, in getUserIdFromSteamId
+    self.execute("SELECT UserID FROM Player WHERE steamid=?", steamId)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\mysql_connection.py", line 62, in execute
+    self.cursor.execute(statement, args)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\cursor.py", line 82, in execute
+    self.errorhandler(self, exc, value)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\connections.py", line 108, in defaulterrorhandler
+    raise errorclass, errorvalue
+InternalError
+05/16/10 15:34:50
+
+Traceback (most recent call last):
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 426, in loadModuleAddon
+    addons.load(newaddon)
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 225, in load
+    addon.load()
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\sourcerpg.py", line 1766, in load
+    database = DATABASE_STORAGE_METHOD(databasePath)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\mysql_connection.py", line 23, in __init__
+    self.execute("CREATE DATABASE IF NOT EXISTS ?", "sourcerpg_players")
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\mysql_connection.py", line 68, in execute
+    self.cursor.execute(statement, trueArgs)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\cursor.py", line 82, in execute
+    self.errorhandler(self, exc, value)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\connections.py", line 108, in defaulterrorhandler
+    raise errorclass, errorvalue
+InternalError
+05/16/10 15:39:39
+
+Traceback (most recent call last):
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 426, in loadModuleAddon
+    addons.load(newaddon)
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 225, in load
+    addon.load()
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\sourcerpg.py", line 1766, in load
+    database = DATABASE_STORAGE_METHOD(databasePath)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\mysql_connection.py", line 23, in __init__
+    self.execute("CREATE DATABASE IF NOT EXISTS ?", "sourcerpg_players")
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\mysql_connection.py", line 70, in execute
+    self.cursor.execute(statement, trueArgs)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\cursor.py", line 82, in execute
+    self.errorhandler(self, exc, value)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\connections.py", line 108, in defaulterrorhandler
+    raise errorclass, errorvalue
+InternalError
+05/16/10 15:41:37
+
+Traceback (most recent call last):
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 426, in loadModuleAddon
+    addons.load(newaddon)
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 225, in load
+    addon.load()
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\sourcerpg.py", line 1766, in load
+    database = DATABASE_STORAGE_METHOD(databasePath)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\mysql_connection.py", line 31, in __init__
+    self.execute("USE ?", "sourcerpg_players")
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\mysql_connection.py", line 77, in execute
+    self.cursor.execute(statement, trueArgs)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\cursor.py", line 82, in execute
+    self.errorhandler(self, exc, value)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\connections.py", line 108, in defaulterrorhandler
+    raise errorclass, errorvalue
+InternalError
+05/16/10 15:47:07
+
+Traceback (most recent call last):
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 269, in triggerEvent
+    self.EventListeners[eventname][listener](event_var)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\sourcerpg.py", line 1970, in player_activate
+    players.addPlayer( event_var['userid'] )
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\sourcerpg.py", line 830, in addPlayer
+    self.players[int(userid)] = PlayerObject(userid)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\sourcerpg.py", line 888, in __init__
+    self.dbUserid = database.addPlayer(self.steamid, self.name)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\sourcerpg.py", line 303, in addPlayer
+    self.execute("INSERT OR IGNORE INTO Player (steamid, popup, credits, name, lastconnected) VALUES (?,?,?,?,?)", steamid, int(popupStatus), int(startCredits), name, int(time.time()) )
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\mysql_connection.py", line 76, in execute
+    self.cursor.execute(statement, trueArgs)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\cursor.py", line 82, in execute
+    self.errorhandler(self, exc, value)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\connections.py", line 108, in defaulterrorhandler
+    raise errorclass, errorvalue
+InternalError
+05/16/10 15:50:08
+
+Traceback (most recent call last):
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 269, in triggerEvent
+    self.EventListeners[eventname][listener](event_var)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\sourcerpg.py", line 1970, in player_activate
+    players.addPlayer( event_var['userid'] )
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\sourcerpg.py", line 830, in addPlayer
+    self.players[int(userid)] = PlayerObject(userid)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\sourcerpg.py", line 888, in __init__
+    self.dbUserid = database.addPlayer(self.steamid, self.name)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\sourcerpg.py", line 303, in addPlayer
+    self.execute("INSERT OR IGNORE INTO Player (steamid, popup, credits, name, lastconnected) VALUES (?,?,?,?,?)", steamid, int(popupStatus), int(startCredits), name, int(time.time()) )
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\mysql_connection.py", line 78, in execute
+    self.cursor.execute(statement, trueArgs)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\cursor.py", line 82, in execute
+    self.errorhandler(self, exc, value)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\connections.py", line 108, in defaulterrorhandler
+    raise errorclass, errorvalue
+InternalError
+05/16/10 15:52:01
+
+Traceback (most recent call last):
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 269, in triggerEvent
+    self.EventListeners[eventname][listener](event_var)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\sourcerpg.py", line 1970, in player_activate
+    players.addPlayer( event_var['userid'] )
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\sourcerpg.py", line 830, in addPlayer
+    self.players[int(userid)] = PlayerObject(userid)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\sourcerpg.py", line 889, in __init__
+    self.update()
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\sourcerpg.py", line 1073, in update
+    database.execute("SELECT * FROM Player WHERE UserID=?", (self.dbUserid,) )
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\mysql_connection.py", line 78, in execute
+    self.cursor.execute(statement, trueArgs)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\cursor.py", line 82, in execute
+    self.errorhandler(self, exc, value)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\connections.py", line 108, in defaulterrorhandler
+    raise errorclass, errorvalue
+InternalError
+05/16/10 15:57:28
+
+Traceback (most recent call last):
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 269, in triggerEvent
+    self.EventListeners[eventname][listener](event_var)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\sourcerpg.py", line 1971, in player_activate
+    players.addPlayer( event_var['userid'] )
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\sourcerpg.py", line 830, in addPlayer
+    self.players[int(userid)] = PlayerObject(userid)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\sourcerpg.py", line 890, in __init__
+    self.update()
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\sourcerpg.py", line 1074, in update
+    database.execute("SELECT * FROM Player WHERE UserID=?", (self.dbUserid,) )
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\mysql_connection.py", line 78, in execute
+    self.cursor.execute(statement, trueArgs)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\cursor.py", line 82, in execute
+    self.errorhandler(self, exc, value)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\connections.py", line 108, in defaulterrorhandler
+    raise errorclass, errorvalue
+InternalError
+05/16/10 15:59:20
+
+Traceback (most recent call last):
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 341, in callBlock
+    self.Blocks[blockname]()
+  File "F:\SRCDS\cstrike\addons\eventscripts\_libs\python\cmdlib.py", line 173, in callbackServer
+    cmd_manager.callback(cmd_manager.server_commands, es.getargv(0).lower())
+  File "F:\SRCDS\cstrike\addons\eventscripts\_libs\python\cmdlib.py", line 112, in callback
+    cmdlist[name].execute(self.CMDArgs(es.getargv(x) for x in xrange(1, es.getargc())))
+  File "F:\SRCDS\cstrike\addons\eventscripts\_libs\python\cmdlib.py", line 207, in execute
+    self.callback(args)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\mysql_connection.py", line 108, in convertFromSQLite
+    sourcerpg.database.cursor.executemany(uidinsert, map(lambda x: list(x[:7]) + [int(float(x[7]))], tempDB.cursor.fetchall()))
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\cursor.py", line 96, in executemany
+    self.rowcount = sum([ self.execute(query, arg) for arg in args ])
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\cursor.py", line 82, in execute
+    self.errorhandler(self, exc, value)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\connections.py", line 108, in defaulterrorhandler
+    raise errorclass, errorvalue
+InternalError
+05/16/10 21:59:39
+
+Traceback (most recent call last):
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 341, in callBlock
+    self.Blocks[blockname]()
+  File "F:\SRCDS\cstrike\addons\eventscripts\_libs\python\cmdlib.py", line 173, in callbackServer
+    cmd_manager.callback(cmd_manager.server_commands, es.getargv(0).lower())
+  File "F:\SRCDS\cstrike\addons\eventscripts\_libs\python\cmdlib.py", line 112, in callback
+    cmdlist[name].execute(self.CMDArgs(es.getargv(x) for x in xrange(1, es.getargc())))
+  File "F:\SRCDS\cstrike\addons\eventscripts\_libs\python\cmdlib.py", line 207, in execute
+    self.callback(args)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\mysql_connection.py", line 110, in convertFromSQLite
+    sourcerpg.database.cursor.executemany(uidinsert, players)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\cursor.py", line 96, in executemany
+    self.rowcount = sum([ self.execute(query, arg) for arg in args ])
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\cursor.py", line 82, in execute
+    self.errorhandler(self, exc, value)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\connections.py", line 108, in defaulterrorhandler
+    raise errorclass, errorvalue
+InternalError
+05/16/10 22:00:51
+
+Traceback (most recent call last):
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 341, in callBlock
+    self.Blocks[blockname]()
+  File "F:\SRCDS\cstrike\addons\eventscripts\_libs\python\cmdlib.py", line 173, in callbackServer
+    cmd_manager.callback(cmd_manager.server_commands, es.getargv(0).lower())
+  File "F:\SRCDS\cstrike\addons\eventscripts\_libs\python\cmdlib.py", line 112, in callback
+    cmdlist[name].execute(self.CMDArgs(es.getargv(x) for x in xrange(1, es.getargc())))
+  File "F:\SRCDS\cstrike\addons\eventscripts\_libs\python\cmdlib.py", line 207, in execute
+    self.callback(args)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\mysql_connection.py", line 110, in convertFromSQLite
+    sourcerpg.database.cursor.execute(uidinsert, player[1:])
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\cursor.py", line 82, in execute
+    self.errorhandler(self, exc, value)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\connections.py", line 108, in defaulterrorhandler
+    raise errorclass, errorvalue
+InternalError
+05/16/10 22:08:59
+
+Traceback (most recent call last):
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 341, in callBlock
+    self.Blocks[blockname]()
+  File "F:\SRCDS\cstrike\addons\eventscripts\_libs\python\cmdlib.py", line 173, in callbackServer
+    cmd_manager.callback(cmd_manager.server_commands, es.getargv(0).lower())
+  File "F:\SRCDS\cstrike\addons\eventscripts\_libs\python\cmdlib.py", line 112, in callback
+    cmdlist[name].execute(self.CMDArgs(es.getargv(x) for x in xrange(1, es.getargc())))
+  File "F:\SRCDS\cstrike\addons\eventscripts\_libs\python\cmdlib.py", line 207, in execute
+    self.callback(args)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\mysql_connection.py", line 111, in convertFromSQLite
+    sourcerpg.database.cursor.execute(uidinsert, player[1:])
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\cursor.py", line 82, in execute
+    self.errorhandler(self, exc, value)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\connections.py", line 108, in defaulterrorhandler
+    raise errorclass, errorvalue
+InternalError
+05/16/10 22:10:08
+
+Traceback (most recent call last):
+  File "F:\SRCDS\cstrike\addons\eventscripts\es.py", line 341, in callBlock
+    self.Blocks[blockname]()
+  File "F:\SRCDS\cstrike\addons\eventscripts\_libs\python\cmdlib.py", line 173, in callbackServer
+    cmd_manager.callback(cmd_manager.server_commands, es.getargv(0).lower())
+  File "F:\SRCDS\cstrike\addons\eventscripts\_libs\python\cmdlib.py", line 112, in callback
+    cmdlist[name].execute(self.CMDArgs(es.getargv(x) for x in xrange(1, es.getargc())))
+  File "F:\SRCDS\cstrike\addons\eventscripts\_libs\python\cmdlib.py", line 207, in execute
+    self.callback(args)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\mysql_connection.py", line 112, in convertFromSQLite
+    sourcerpg.database.cursor.execute(uidinsert, tuple(player[1:]))
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\cursor.py", line 82, in execute
+    self.errorhandler(self, exc, value)
+  File "F:\SRCDS\cstrike\addons\eventscripts\sourcerpg\addons\mysql_connection\pymysql\connections.py", line 108, in defaulterrorhandler
+    raise errorclass, errorvalue
+InternalError
+05/16/10 22:26:46
+
