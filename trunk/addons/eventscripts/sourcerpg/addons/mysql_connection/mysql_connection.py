@@ -100,19 +100,22 @@ CREATE TABLE IF NOT EXISTS Skill (
         query = "SELECT UserID, steamid, level, xp, credits, popup, name, lastConnected FROM Player"
         tempDB.execute(query)
 
-        players = map(lambda x: list(x[:7]) + [int(float(x[7]))], tempDB.cursor.fetchall())
+        players = map(lambda x: list(x[:6]) + [x[6].replace('"', '\\"').replace("'", "\\'")] + [int(float(x[7]))], tempDB.cursor.fetchall())
 
         for player in players:
-            query = "SELECT name, level FROM Skill WHERE UserID=?"
-            tempDB.cursor.execute(query, (player[0],) )
-            skills = tempDB.cursor.fetchall()
-            sourcerpg.database.cursor.execute(uidinsert, tuple(player[1:]))
-            uid = sourcerpg.database.cursor.lastrowid
-            skills = tuple(map(lambda x: tuple([uid] + list(x)), skills))
-            sourcerpg.database.cursor.executemany(skillinsert, skills)
+            try:
+                query = "SELECT name, level FROM Skill WHERE UserID=?"
+                tempDB.cursor.execute(query, (player[0],) )
+                skills = tempDB.cursor.fetchall()
+                sourcerpg.database.cursor.execute(uidinsert, tuple(player[1:]))
+                uid = sourcerpg.database.cursor.lastrowid
+                skills = tuple(map(lambda x: tuple([uid] + list(x)), skills))
+                sourcerpg.database.cursor.executemany(skillinsert, skills)
+            except:
+                es.dbgmsg(0, "[SourceRPG] Error converting SteamID %s" % (player[1]))
+                continue
         
-        tempDB.close()
-        sourcerpg.database.save()
+        sourcerpg.database.save(True)
         for player in es.getUseridList():
             sourcerpg.players.addPlayer(player)
         sourcerpg.es_map_start({})
@@ -141,7 +144,7 @@ CREATE TABLE IF NOT EXISTS Skill (
 
         self.cursor.execute(statement, trueArgs)
 
-    def save(self):
+    def save(self, force=False):
         """
         Executed when this object is called to be saved. Because of player's
         having the ability to call the database to save upon disconnect, we
@@ -150,7 +153,7 @@ CREATE TABLE IF NOT EXISTS Skill (
         player disconnects and instantly rejoins another server, the maximum
         possible loss is only 10 seconds worth of gameplay.
         """
-        if time.time() - self.lastSaved > 10:
+        if time.time() - self.lastSaved > 10 or force is True:
             self.lastSaved = time.time()
             sourcerpg.SQLiteManager.save(self)
 
