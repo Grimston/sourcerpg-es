@@ -46,14 +46,13 @@ def player_hurt(event_var):
         """ Player is at least level 1 in this skill """
         if not player['adrenalined'] and not player['slowed']:
             """ Player is not already in the adrenaline mode """
-
-            if "Frost Pistol" in sourcerpg.skills:
-                """ If frost pistol is loaded check if the attack was a frost pistol attack """
-                attacker = event_var['attacker']
-                if attacker and attacker.isdigit() and int(attacker) > 1:
-                    """ If the attacker is a valid attacker """
-                    if event_var['es_attackerteam'] != event_var['es_userteam']:
-                        """ If the attacker is not on the user's team """
+            attacker = event_var['attacker']
+            if attacker and attacker.isdigit() and int(attacker) > 1:
+                """ If the attacker is a valid attacker """
+                if event_var['es_attackerteam'] != event_var['es_userteam']:
+                    """ If the attacker is not on the user's team """
+                    if "Frost Pistol" in sourcerpg.skills:
+                        """ If frost pistol is loaded check if the attack was a frost pistol attack """
                         if sourcerpg.players[attacker]['Frost Pistol']:
                             """ If the attacker has a frost pistol level """
                             weapon = event_var['weapon']
@@ -64,14 +63,15 @@ def player_hurt(event_var):
                             if weapon in weaponlib.getWeaponNameList("#secondary"):
                                 """ The attack was a frost pistol attack, return early """
                                 return
-            player['adrenalined'] = True
-            amount = level / 10.
-            speed  = player['maxSpeed'] + amount
-            
-            """ Set the speed and the delay """
-            playerlibInstance = playerlib.getPlayer(userid)
-            playerlibInstance.speed = speed
-            gamethread.delayedname( float(length), 'sourcerpg_adrenaline_user%s' % userid, reset, (userid, speed - amount) )
+                            
+                    player['adrenalined'] = True
+                    amount = level / 10.
+                    speed  = player['maxSpeed'] + amount
+
+                    """ Set the speed and the delay """
+                    playerlibInstance = playerlib.getPlayer(userid)
+                    playerlibInstance.speed = speed
+                    gamethread.delayedname( float(length), 'sourcerpg_adrenaline_user%s' % userid, reset, (userid, speed - amount) )
             
 def player_death(event_var):
     """
@@ -115,7 +115,8 @@ def reset(userid, speed):
     @PARAM speed - the new speed value of the player
     """
     gamethread.cancelDelayed('sourcerpg_adrenaline_user%s' % userid)
-    player = sourcerpg.players[userid]
-    player['adrenalined'] = False
-    player['maxSpeed']    = speed
-    playerlib.getPlayer(userid).speed = speed
+    if es.exists('userid', userid):
+        player = sourcerpg.players[userid]
+        player['adrenalined'] = False
+        player['maxSpeed']    = speed
+        playerlib.getPlayer(userid).speed = speed
