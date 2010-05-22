@@ -105,7 +105,7 @@ class SmokeGrenadeManager(object):
         player is in range, damage them.
         """
         smokeList = es.createentitylist("smokegrenade_projectile")
-        for entity in self.entities:
+        for entity in self.entities.copy():
             if entity in smokeList:
                 x, y, z = map(float, es.getindexprop(entity, 'CBaseEntity.m_vecOrigin').split(","))
                 player  = self.entities[entity]
