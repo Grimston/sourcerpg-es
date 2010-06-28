@@ -1202,14 +1202,14 @@ class CommandsDatabase(object):
         self.player['xp'] = currentXp
         
         """ Create an fire the gainxp event """
-        es.event("initialize", "sourcerpg_gainxp")
-        es.event("setint", "sourcerpg_gainxp", "userid",   self.userid)
-        es.event("setint", "sourcerpg_gainxp", "newxp",    currentXp)
-        es.event("setint", "sourcerpg_gainxp", "oldxp",    oldXp)
-        es.event("setint", "sourcerpg_gainxp", "levels",   amountOfLevels)
-        es.event("setint", "sourcerpg_gainxp", "xpneeded", nextLevelXp )
-        es.event("setstring", "sourcerpg_gainxp", "reason", reason)
-        es.event("fire", "sourcerpg_gainxp")
+        values = {}
+        values["oldxp"] = ("setint", oldXp)
+        values["newxp"] = ("setint", currentXp)
+        values["userid"] = ("setint", self.userid)
+        values["levels"] = ("setint", amountOfLevels)
+        values["xpneeded"] = ("setint", nextLevelXp)
+        values["reason"] = ("setstring", reason if reason else " ")
+        gamethread.delayed(0, fireEvent, ("sourcerpg_gainxp", values))
         
         if amountOfLevels:
             self.addLevel( amountOfLevels )
@@ -1297,14 +1297,14 @@ class CommandsDatabase(object):
                 es.emitsound('player', self.userid, str(levelupSound), 0.7, 0.5 )
             
             """ Create and fire the levelup event """
-            es.event("initialize", "sourcerpg_levelup")
-            es.event("setint", "sourcerpg_levelup", "userid",   self.userid)
-            es.event("setint", "sourcerpg_levelup", "newlevel", self.player['level'])
-            es.event("setint", "sourcerpg_levelup", "oldlevel", self.player['level'] - amount)
-            es.event("setint", "sourcerpg_levelup", "amount",   amount)
-            es.event("setint", "sourcerpg_levelup", "xp",       self.player['xp'])
-            es.event("setint", "sourcerpg_levelup", "xpneeded", (self.player['level'] - 1) * int(xpIncrement) + int(startXp) )
-            es.event("fire", "sourcerpg_levelup")
+            values = {}
+            values["userid"] = ("setint", self.userid)
+            values["newlevel"] = ("setint", self.player['level'])
+            values["oldlevel"] = ("setint", self.player['level'] - amount)
+            values["amount"] = ("setint", amount)
+            values["xp"] = ("setint", self.player['xp'])
+            values["xpneeded"] = ("setint", (self.player['level'] - 1) * int(xpIncrement) + int(startXp))
+            gamethread.delayed(0, fireEvent, ("sourcerpg_levelup", values))
                 
     def resetSkills(self):
         """
@@ -1407,7 +1407,7 @@ class ConfigurationObject(cfglib.AddonCFG):
         @PARAM name - the string name of the skill
         @PARAM information - the information about the skill, accepts multiline 
         """
-        gamethread.delayed(0, self.setSkillInfo, (name, information) ) # delay by a tick to allow skills to register
+        gamethread.delayed(0, gamethread.delayed, (0, self.setSkillInfo, (name, information))) # delay by 2 ticks to allow skills to register
         header = "\n%s\n%s\n\n" % ('*' * 50, name.center(50) )
         footer = "\n%s" % ("*" * 50)
         information = information.strip() # strip whitespace at begggining and end of lines
@@ -1432,6 +1432,7 @@ class ConfigurationObject(cfglib.AddonCFG):
         @PARAM queuecmd - Append the execution to the queue stack
         @PARAM internal - is this an internal call
         """
+        debug.write("[SourceRPG] Executing skills.cfg", 0, True)
         if internal:
             cfglib.AddonCFG.execute(self, queuecmd)
             
@@ -1442,6 +1443,7 @@ class ConfigurationObject(cfglib.AddonCFG):
         
         @PARAM internal - is this an internal call
         """
+        debug.write("[SourceRPG] Writing skills.cfg", 0, True)
         if internal:
             cfglib.AddonCFG.write(self)
         
@@ -1685,9 +1687,7 @@ class PopupCallbacks(object):
         choice to confirm if they want to reset their skills or not. If they
         do, choice will be True, otherwise False.
         """
-        es.msg("Userid %s (%s) executed choice %s" % (userid, es.getplayername(userid), choice))
         if choice:
-            es.msg("Resetting skills...")
             players[userid].resetSkills()
 
 class DebugManager(object):
@@ -1750,14 +1750,12 @@ def load():
     Executed when the script loads. Ensures that all the commands are registered
     and all the default popups loaded
     """
-    global database
-    global ranks
     osPlatform = ("Windows" if os.name == "nt" else "Linux" if os.name == "posix" else os.name)
     debug.write('Log file started at %s' % time.strftime("%A %d %B %Y - %H:%M:%S"), 0, False)
     debug.write('\n*******************************************************',        0, False)
-    debug.write('SourceRPG: Turning your Server into a Role Playing Game',          0, False)
-    debug.write('SourceRPG: Current Version - %s' % info.version,                   0, False)
-    debug.write('SourceRPG: Made by %s' % info.author,                              0, False)
+    debug.write('[SourceRPG]: Turning your Server into a Role Playing Game',        0, False)
+    debug.write('[SourceRPG]: Current Version - %s' % info.version,                 0, False)
+    debug.write('[SourceRPG]: Made by %s' % info.author,                            0, False)
     debug.write('\nSystem Info:',                                                   0, False)
     debug.write('\tOS: %s' % osPlatform,                                            0, False)
     debug.write('\tEventscripts Version: %s' % es.ServerVar('eventscripts_ver'),    0, False)
@@ -1777,18 +1775,15 @@ def load():
     cmdlib.registerSayCommand("rpgpopup",   sayCommands.togglePopup, "Tells the player their rank or another player's rank")
     cmdlib.registerSayCommand("rpgtop10",   sayCommands.top10,       "Sends the player the last updated top 10 scores")
     
-    es.server.cmd('es_xmexec ../addons/eventscripts/%s/skill_loader.cfg' % info.basename)
-    skillConfig.write(True)
-    skillConfig.execute(True, True)
+    es.mexec("../addons/eventscripts/%s/skill_loader.cfg" % info.basename)
     
-    es.server.cmd('es_xmexec ../addons/eventscripts/%s/addon_loader.cfg' % info.basename)
-
-    if int(turboMode):
-        database = DATABASE_STORAGE_METHOD(":memory:")
-    else:
-        database = DATABASE_STORAGE_METHOD(databasePath)
-
-    ranks = RankManager()
+    es.mexec("../addons/eventscripts/%s/addon_loader.cfg" % info.basename)
+    
+    debug.write('[SourceRPG]: Delaying load by 2 ticks for config execution', 0, False)
+    
+    gamethread.delayed(0, skillConfig.write, True)
+    gamethread.delayed(0, skillConfig.execute, (True, True))
+    gamethread.delayed(0, gamethread.delayed, (0, delayedLoad))
 
     """ Create the default popups which aren't unique to players """
     rpgmenu = popuplib.easymenu("sourcerpg_rpgmenu", "_popup_choice", popups.rpgmenu)
@@ -1870,6 +1865,19 @@ or recovering them again!""")
     creditmenu.addline('0. Cancel')
     creditmenu.submenu(8, 'sourcerpg_help')
     
+def delayedLoad():
+    global database
+    global ranks
+    
+    debug.write("[SourceRPG] Executing delayed load", 0, False)
+    
+    if int(turboMode):
+        database = DATABASE_STORAGE_METHOD(":memory:")
+    else:
+        database = DATABASE_STORAGE_METHOD(databasePath)
+
+    ranks = RankManager()
+    
     """ If the script is loaded late then make sure all players are inserted """
     if es.getplayercount():
         for player in es.getUseridList():
@@ -1884,8 +1892,9 @@ or recovering them again!""")
     if str( saveType ) == "intervals":
         gamethread.delayedname(float(saveLength), 'sourcerpg_databasesave', saveDatabase)
         
-    debug.write('SourceRPG: Finished Loading... Enjoy your stay!',           0, False)
+    debug.write('[SourceRPG]: Finished Loading... Enjoy your stay!',           0, False)
     debug.write('*******************************************************\n', 0, False)
+    
     
 def unload():
     """
@@ -2275,9 +2284,11 @@ def saveDatabase():
         debug.write("SQLite database saved", 1)
         debug.write("Creating the event", 1)
         """ Create and fire the event """
-        es.event("initialize", "sourcerpg_databasesaved")
-        es.event("setstring",  "sourcerpg_databasesaved", "type", str(saveType) )
-        es.event("fire",       "sourcerpg_databasesaved")
+        #es.event("initialize", "sourcerpg_databasesaved")
+        #es.event("setstring",  "sourcerpg_databasesaved", "type", str(saveType) )
+        #es.event("fire",       "sourcerpg_databasesaved")
+        values = {"type":("setstring", str(saveType))}
+        gamethread.delayed(0, fireEvent, ("sourcerpg_databasesaved", values))
         debug.write("Event fired", 1)
         
         """ Create a loop if we need to """
@@ -2337,12 +2348,12 @@ def checkSkillForUpgrading(userid, choice, popupid, resend = True, useCredits = 
         tell(userid, 'skill upgrade', tokens)
         
         """ Fire the skill upgrade event """
-        es.event("initialize", "sourcerpg_skillupgrade")
-        es.event("setint",     "sourcerpg_skillupgrade", "userid", userid)
-        es.event("setint",     "sourcerpg_skillupgrade", "level", player[str(skill.name)])
-        es.event("setint",     "sourcerpg_skillupgrade", "cost",  creditsRequired)
-        es.event("setstring",  "sourcerpg_skillupgrade", "skill", str(skill.name))
-        es.event("fire",       "sourcerpg_skillupgrade")
+        values = {}
+        values["userid"] = ("setint", userid)
+        values["level"] = ("setint", player[str(skill.name)])
+        values["cost"] = ("setint", creditsRequired)
+        values["skill"] = str(skill.name)
+        gamethread.delayed(0, fireEvent, "sourcerpg_skillupgrade", values)
         
     else:
     
@@ -2350,7 +2361,7 @@ def checkSkillForUpgrading(userid, choice, popupid, resend = True, useCredits = 
         tokens = {}
         tokens['credreq'] = creditsRequired
         tokens['credits'] = player['credits']
-        tokens['amountofcred'] = creditsRequired - player['credits']
+        tokens['amountofcreds'] = creditsRequired - player['credits']
         
         tell(userid, 'insufficient credits', tokens)
     
@@ -2408,12 +2419,12 @@ def checkSkillForSelling(userid, choice, popupid, resend=True, gainCredits = Tru
         tell(userid, 'skill downgrade', tokens)
         
         """ Fire the skill downgrade event """
-        es.event("initialize", "sourcerpg_skilldowngrade")
-        es.event("setint",     "sourcerpg_skilldowngrade", "userid", userid)
-        es.event("setint",     "sourcerpg_skilldowngrade", "level", player[skill.name])
-        es.event("setint",     "sourcerpg_skilldowngrade", "gained", creditsGained)
-        es.event("setstring",  "sourcerpg_skilldowngrade", "skill", skill.name)
-        es.event("fire",       "sourcerpg_skilldowngrade")
+        values = {}
+        values["userid"] = ("setint", userid)
+        values["level"] = ("setint", player[skill.name])
+        values["gained"] = ("setint", creditsGained)
+        values["skill"] = ("setstring", skill.name)
+        gamethread.delayed(0, fireEvent, ("sourcerpg_skilldowngrade", values))
         
     if resend is True:
         buildSellMenu(userid)
@@ -2538,3 +2549,24 @@ def tell(userid, textIdent, tokens = {} ):
     """
     message = "#green%s #default- #lightgreen%s" % ( str(prefix), text(textIdent, tokens, playerlib.getPlayer(userid).get("lang") ) ) 
     es.tell(userid, '#multi', message)
+    
+def fireEvent(eventName, values):
+    """
+    Fires a custom event. This allows us to call the event with a tick delay
+    to ensure that we arent' in any other event. In the OB engine, if we cause
+    an event to be fired whilst we are in another event, it causes the event
+    queue to mess up and crash the server. A 1 tick delay removes the chance of
+    an event firing whilst in another event.
+    
+    @PARAM str eventName The name of the event to fire
+    @PARAM dict values A dictionary containing all the event variables:
+        Dict should be in this syntax:
+        {<event_var name>} = (<setint/setstring...>, <event_var value>)
+        e.g.:
+        {"userid"} = ("setint", 2)
+    """
+    es.event("initialize", eventName)
+    for key, value in values.iteritems():
+        es.event(value[0], eventName, key, value[1])
+    
+    es.event("fire", eventName)

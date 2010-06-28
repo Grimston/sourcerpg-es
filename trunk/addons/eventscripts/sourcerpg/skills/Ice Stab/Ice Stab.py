@@ -46,7 +46,7 @@ def player_hurt(event_var):
     """
     userid   = event_var['userid']
     attacker = event_var['attacker']
-    if attacker and int(attacker):
+    if attacker and int(attacker) and attacker not in frozen:
         """ The attacker did not hurt themselves """
         player = sourcerpg.players[attacker]
         level  = player[skillName]

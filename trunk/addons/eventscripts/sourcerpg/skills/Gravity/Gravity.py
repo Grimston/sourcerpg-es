@@ -123,8 +123,6 @@ class GravityObject(object):
         @PARAM userid - the user who this gravity object represents
         @PARAM amount - the default amount of gravity to assign
         """
-        self.lastAirValue      = es.getplayerprop(userid, 'CBasePlayer.m_fFlags') & 1
-        self.lastMovementValue = es.getplayerprop(userid, 'CBaseEntity.movetype')
         self.userid = int(userid)
         self.amount = amount
         
@@ -138,16 +136,7 @@ class GravityObject(object):
         reset the players gravity
         """
         if es.exists('userid', self.userid):
-            newAirValue      = es.getplayerprop(self.userid, 'CBasePlayer.m_fFlags') & 1
-            newMovementValue = es.getplayerprop(self.userid, 'CBaseEntity.movetype')
-            if newAirValue != self.lastAirValue:
-                """ Player has jumped """
-                self.lastAirValue = newAirValue
-                self.reset()
-            elif newMovementValue != self.lastMovementValue and newMovementValue == 2:
-                """ Player has gone back to static movements, (i.e jumped off of a ladder) """
-                self.lastMovementValue = 2
-                self.reset()
+            self.reset()
         
     def reset(self, amountOverride = None):
         """

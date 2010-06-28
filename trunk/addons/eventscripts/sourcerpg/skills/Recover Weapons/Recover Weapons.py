@@ -3,6 +3,8 @@ import playerlib
 import weaponlib
 import gamethread
 
+import spe
+
 from sourcerpg import sourcerpg
 
 skillName = "Recover Weapons"
@@ -50,13 +52,14 @@ def setDefaultAttributes(userid):
 
     @PARAM userid - the id of the user we wish to assign the values to
     """
-    player              = sourcerpg.players[userid]
-    player['recover']   = False
-    player['primary']   = None
-    player['secondary'] = None
+    player = sourcerpg.players[userid]
+    if player is not None:
+        player['recover']   = False
+        player['primary']   = None
+        player['secondary'] = None
 
-    for weaponName in weaponlib.getWeaponNameList("#grenade"):
-        player[weaponName] = 0
+        for weaponName in weaponlib.getWeaponNameList("#grenade"):
+            player[weaponName] = 0
 
 def player_spawn(event_var):
     """
@@ -75,11 +78,13 @@ def player_spawn(event_var):
         if player['recover']:
             level = player[skillName]
             if level:
+                currentDelay = 0.1
                 """ Player is at least level one in this skill """
                 for weaponName in weaponlib.getWeaponNameList("#grenade"):
                     while player[weaponName] > 0:
-                        es.server.queuecmd('es_xgive %s %s' %  (userid, weaponName) )
+                        gamethread.delayed(currentDelay, giveWeapon, (userid, weaponName))
                         player[weaponName] -= 1
+                        currentDelay += 0.1
 
                 if level >= 2:
                     """ Player has at least level 2, give them back their secondary """
@@ -87,16 +92,38 @@ def player_spawn(event_var):
                         handle = es.getplayerhandle(userid)
                         for index in weaponlib.getIndexList({2 : "weapon_glock", 3 : "weapon_usp"}[es.getplayerteam(userid)]):
                             if es.getindexprop(index, 'CBaseEntity.m_hOwnerEntity') == handle:
-                                es.server.queuecmd('es_xremove %s' % index)
+                                gamethread.delayed(currentDelay, safeRemove, index)
+                                currentDelay += 0.1
                                 break
-                        gamethread.delayed(0, es.server.queuecmd, ('es_xgive %s %s' % (userid, player["secondary"]) ) )
+                        gamethread.delayed(currentDelay, giveWeapon, (userid, player["secondary"]) )
+                        currentDelay += 0.1
 
                 if level >= 3:
                     """ Player has at least level 3, give them back their primary """
                     if player["primary"]:
-                        es.server.queuecmd('es_xgive %s %s' % (userid, player["primary"]) )
+                        gamethread.delayed(currentDelay, giveWeapon, (userid, player["primary"]))
 
                 player['recover'] = False
+                
+def safeRemove(index):
+    """
+    Ensures that an entity exists before safely removing it.
+    
+    @pararm int index The entity ID of the object to remove
+    """
+    if index in es.createentitylist():
+        es.server.queuecmd("es_xremove %s" % index)
+                                                           
+def giveWeapon(userid, weapon):
+    """
+    Gives a player a named weapon. The reason we have a custom function for
+    this is so we can alter the method. Currently SPE is the only safe way to
+    do this.
+    
+    @param int userd The ID of the user
+    @param str weapon The Weapon name to give to the player
+    """
+    spe.giveNamedItem(userid, weapon)
 
 def player_death(event_var):
     """
