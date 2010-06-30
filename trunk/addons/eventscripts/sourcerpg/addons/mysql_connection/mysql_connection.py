@@ -11,6 +11,7 @@ import pymysql
 
 import time
 import os
+from path import path as Path
 
 import es
 import cfglib
@@ -180,6 +181,7 @@ def load():
     """
     cmdlib.registerServerCommand("convert_sqlite_to_mysql", MySQLDatabaseManager.convertFromSQLite, "Converts the SQLite DB to MySQL DB")
     config.write()
+    es.server.cmd("")
     config.execute(False)
     sourcerpg.DATABASE_STORAGE_METHOD = MySQLDatabaseManager
     if sourcerpg.database is not None:
@@ -208,8 +210,13 @@ def unload():
         sourcerpg.players.addPlayer(player)
     es.server.queuecmd("mp_restartgame 1")
 
-configPath = os.path.join(es.getAddonPath("sourcerpg"), "addons", "mysql_connection", "config.cfg")
-config = cfglib.AddonCFG(configPath)
+
+oldCFGPath = Path(es.getAddonPath("sourcerpg")).joinpath("addons", "mysql_connection", "config.cfg")
+newCFGPath = Path(str(es.ServerVar("eventscripts_gamedir"))).joinpath("cfg", "sourcerpg", "mysql_config.cfg")
+if oldCFGPath.exists():
+    oldCFGPath.copy(str(newCFGPath))
+    oldCFGPath.remove()
+config = cfglib.AddonCFG(str(newCFGPath))
 config.text("MySQL Connection Version %s" % sourcerpg.info.version)
 config.text("This is the configuration for your mysql server")
 mysqlHostName = config.cvar("sourcerpg_mysql_host", "localhost", "The IP / HostName of the MySQL server")

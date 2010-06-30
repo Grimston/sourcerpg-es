@@ -15,6 +15,7 @@ import random
 import time
 
 from sqlite3 import dbapi2 as sqlite
+from path import path as Path
 
 """ Import the psyco module which improves speed """
 import psyco
@@ -43,9 +44,35 @@ if os.path.isfile(textPath):
     text = langlib.Strings(textPath)
 
 # Create the configuration file
+basePath = Path(es.getAddonPath(info.basename))
+cfgPath = Path(str(es.ServerVar("eventscripts_gamedir"))).joinpath("cfg")
+sourcerpgCFG = cfgPath.joinpath("sourcerpg")
+if not sourcerpgCFG.isdir():
+    sourcerpgCFG.mkdir()
+     
+skillLoader = basePath.joinpath("skill_loader.cfg")
+addonLoader = basePath.joinpath("addon_loader.cfg")
+configFile = basePath.joinpath("config.cfg")
+skillConfig = basePath.joinpath("skills.cfg")
 
-configPath = os.path.join( es.getAddonPath(info.basename), "config.cfg" )
-config = cfglib.AddonCFG(configPath)
+if skillLoader.exists():
+    skillLoader.copy(sourcerpgCFG.joinpath("skill_loader.cfg"))
+    skillLoader.remove()
+
+if addonLoader.exists():
+    addonLoader.copy(sourcerpgCFG.joinpath("addon_loader.cfg"))
+    addonLoader.remove()
+    
+if configFile.exists():
+    configFile.copy(sourcerpgCFG.joinpath("config.cfg"))
+    configFile.remove()
+
+if skillConfig.exists():
+    skillConfig.copy(sourcerpgCFG.joinpath("skills.cfg"))
+    skillConfig.remove()  
+
+configPath = sourcerpgCFG.joinpath("config.cfg")
+config = cfglib.AddonCFG(str(configPath))
 config.text(info.name + " version " + info.version + " by " + info.author)
 config.text("../addons/eventscripts/sourcerpg/config.cfg")
 config.text(">>> To config the skills, see ../sourcerpg/skills.cfg <<<")
@@ -159,7 +186,8 @@ botsGetXpVsBots   = config.cvar('srpg_botsGetXpVsBots',   1, "Do bots receive ex
 botsGetXpOnEvents = config.cvar('srpg_botsGetXpOnEvents', 1, "Do bots receive experience on events such as bomb plant and bomb defuse etc?")
 
 config.write()
-config.execute()
+es.server.cmd("exec sourcerpg/config.cfg")
+#config.execute()
 
 # Make Public Variable
 es.ServerVar('sourcerpg', info.version, 'SourceRPG Version - Made by Freddukes').makepublic()
@@ -210,8 +238,10 @@ class SQLiteManager(object):
         
         @PARAM path - the absolute path of the database 
         """
+        debug.write('[SourceRPG] SQLiteManager constructor, path: %s' % path, 0, True)
         self.path       = path 
         self.connection = sqlite.connect(path)
+        debug.write('[SourceRPG] SQLite Connected', 0, True)
         self.connection.text_factory = str
         self.cursor     = self.connection.cursor()
         
@@ -243,6 +273,7 @@ CREATE TABLE IF NOT EXISTS Skill (
         
         self.cursor.execute("CREATE INDEX IF NOT EXISTS StatIndex   ON Skill(UserID);")
         self.cursor.execute("CREATE INDEX IF NOT EXISTS PlayerIndex ON Player(SteamID);")
+        debug.write('[SourceRPG] All tables created', 0, True)
         
     def __del__(self):
         """
@@ -290,7 +321,9 @@ CREATE TABLE IF NOT EXISTS Skill (
         
         @PARAM parseString - the string query line of a SQLite statement
         """
+        debug.write('[SourceRPG] Executing SQL String: %s' % parseString, 1, True)
         self.cursor.execute(parseString, args)
+        debug.write('[SourceRPG] SQL String executed successfully', 2, True)
         
     def addPlayer(self, steamid, name):
         """
@@ -1336,9 +1369,10 @@ class RankManager(object):
     This class just saves the sorted top 10 so we can call it at certain stages
     without it 
     """
-    def __init__(self):
+    def __init__(self, update=False):
         """ Executed when the class is instanced, update the ranks """
-        self.update()
+        if update is not False:
+            self.update()
         
     def __len__(self):
         """
@@ -1434,7 +1468,7 @@ class ConfigurationObject(cfglib.AddonCFG):
         """
         debug.write("[SourceRPG] Executing skills.cfg", 0, True)
         if internal:
-            cfglib.AddonCFG.execute(self, queuecmd)
+            es.server.cmd('exec ' + self.cfgpath.replace(str(cfgPath).replace("\\", "/"), '', 1).lstrip("/"))
             
     def write(self, internal = False):
         """
@@ -1736,8 +1770,9 @@ addons   = AddonManager()
 players  = PlayerManager()
 commands = CommandManager()
 popups   = PopupCallbacks()
+ranks    = RankManager()
 debug    = DebugManager(debugPath)
-skillConfig = ConfigurationObject(os.path.join( es.getAddonPath(info.basename), "skills.cfg"))
+skillConfig = ConfigurationObject(str(sourcerpgCFG.joinpath("skills.cfg")))
 sayCommands = SayCommandsManager()
 weaponXp    = {}
 
@@ -1750,6 +1785,9 @@ def load():
     Executed when the script loads. Ensures that all the commands are registered
     and all the default popups loaded
     """
+    global database
+    global ranks
+    
     osPlatform = ("Windows" if os.name == "nt" else "Linux" if os.name == "posix" else os.name)
     debug.write('Log file started at %s' % time.strftime("%A %d %B %Y - %H:%M:%S"), 0, False)
     debug.write('\n*******************************************************',        0, False)
@@ -1775,15 +1813,14 @@ def load():
     cmdlib.registerSayCommand("rpgpopup",   sayCommands.togglePopup, "Tells the player their rank or another player's rank")
     cmdlib.registerSayCommand("rpgtop10",   sayCommands.top10,       "Sends the player the last updated top 10 scores")
     
-    es.mexec("../addons/eventscripts/%s/skill_loader.cfg" % info.basename)
+    es.server.cmd("exec sourcerpg/skill_loader.cfg")
     
-    es.mexec("../addons/eventscripts/%s/addon_loader.cfg" % info.basename)
+    es.server.cmd("exec sourcerpg/addon_loader.cfg")
     
-    debug.write('[SourceRPG]: Delaying load by 2 ticks for config execution', 0, False)
-    
-    gamethread.delayed(0, skillConfig.write, True)
-    gamethread.delayed(0, skillConfig.execute, (True, True))
-    gamethread.delayed(0, gamethread.delayed, (0, delayedLoad))
+    skillConfig.write(True)
+    skillConfig.execute(True, True)
+
+    debug.write('[SourceRPG] Starting the popup creation', 0, False)
 
     """ Create the default popups which aren't unique to players """
     rpgmenu = popuplib.easymenu("sourcerpg_rpgmenu", "_popup_choice", popups.rpgmenu)
@@ -1865,17 +1902,14 @@ or recovering them again!""")
     creditmenu.addline('0. Cancel')
     creditmenu.submenu(8, 'sourcerpg_help')
     
-def delayedLoad():
-    global database
-    global ranks
+    debug.write('[SourceRPG] Popups created', 0, False)
     
-    debug.write("[SourceRPG] Executing delayed load", 0, False)
     
     if int(turboMode):
         database = DATABASE_STORAGE_METHOD(":memory:")
     else:
         database = DATABASE_STORAGE_METHOD(databasePath)
-
+        
     ranks = RankManager()
     
     """ If the script is loaded late then make sure all players are inserted """
@@ -1892,7 +1926,7 @@ def delayedLoad():
     if str( saveType ) == "intervals":
         gamethread.delayedname(float(saveLength), 'sourcerpg_databasesave', saveDatabase)
         
-    debug.write('[SourceRPG]: Finished Loading... Enjoy your stay!',           0, False)
+    debug.write('[SourceRPG]: Finished Loading... Enjoy your stay!',         0, False)
     debug.write('*******************************************************\n', 0, False)
     
     
@@ -1939,10 +1973,16 @@ def es_map_start(event_var):
     
     @PARAM event_var - an automatically passed event instance
     """
+    debug.write('[SourceRPG] Executing the es_map_start event', 1, True)
     es.loadevents('declare', 'addons/eventscripts/%s/events/events.res' % info.basename)
+    debug.write('[SourceRPG] Events loaded', 1, True)
+    
     ranks.update()
-
+    
+    debug.write('[SourceRPG] Ranks updated', 1, True)
+    
     if ranks.getPlayerSlice(0, 10):
+        debug.write('[SourceRPG] Building top 10 menu', 1, True)
         query = "SELECT name,level,xp,credits FROM Player WHERE steamid IN ("
         for steamid in ranks.getPlayerSlice(0, 10):
             query += "'%s', " % steamid
@@ -1979,15 +2019,21 @@ def es_map_start(event_var):
             rpgTop10Popup.addline("0. Cancel")
             rpgTop10Popup.submenu(8, 'sourcerpg_rpgtop5')
         rpgTop5Popup.addline("0. Close")
-    
+        
+        debug.write('[SourceRPG] Top 10 created', 0, True)
+        
     """ Delete all inactive people """
     currentTime = int(time.time())
     currentTime -= ( float(inactivityCounter) * 86400 ) # 86400 = seconds in a day
+    
+    debug.write('[SourceRPG] Removing all inactve players!', 0, True)
     
     database.execute("SELECT UserID FROM Player WHERE lastconnected < ?", int(currentTime) )
     for userid in database.fetchall():
         database.execute("DELETE FROM Player WHERE UserID=?", userid )
         database.execute("DELETE FROM Skill WHERE UserID=?", userid )
+    
+    debug.write('[SourceRPG] es_map_start event finished executing', 1, True)
     
 def player_activate(event_var):
     """
