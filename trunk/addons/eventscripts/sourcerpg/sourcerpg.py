@@ -504,6 +504,7 @@ CREATE TABLE IF NOT EXISTS Skill (
         
         @RETURN list - attributes from which the query returned 
         """
+        debug.write("[SourceRPG] Handling fetchall", 2)
         trueValues = []
         for value in self.cursor.fetchall():
             if isinstance(value, tuple):
@@ -523,6 +524,9 @@ CREATE TABLE IF NOT EXISTS Skill (
                 if isinstance(value, long):
                     value = int(value)
                 trueValues.append(value)
+        for value in trueValues:
+            debug.write("Result: %s" % value, 4)
+        debug.write("[SourceRPG] Returning the result", 2)
         return trueValues
         
     def fetchone(self):
@@ -534,8 +538,11 @@ CREATE TABLE IF NOT EXISTS Skill (
         
         @RETURN Object - the result from the query command
         """
+        debug.write("[SourceRPG] Fetching one object value", 2)
         result = self.cursor.fetchone()
+        debug.write("The initial value is: %s" % value, 2)
         if hasattr(result, "__iter__"):
+            debug.write("Attribute has iterable, test to see if there's only 1 value", 2)
             if len(result) == 1:
                 trueResults = result[0]
                 if isinstance(trueResults, long):
@@ -543,6 +550,7 @@ CREATE TABLE IF NOT EXISTS Skill (
                 return trueResults
             
             else:
+                debug.write("Single result attribute", 2)
                 trueResults = []
                 for trueResult in result:
                     if isinstance(trueResult, long):
@@ -552,6 +560,8 @@ CREATE TABLE IF NOT EXISTS Skill (
 
         if isinstance(result, long):
             result = int(result)
+        debug.write("Result: %s" % result, 3)
+        debug.write("[SourceRPG] Returning the value of the object", 2)
         return result    
         
     def save(self):
@@ -559,9 +569,13 @@ CREATE TABLE IF NOT EXISTS Skill (
         Commits the database to harddrive so that we can load it if the server
         closes.
         """
+        debug.write("[SourceRPG] Handling SQL Save", 1)
         if self.path != ":memory:":
+            debug.write("Path is not in memory", 2, False)
             if currentTurboMode is False:
+                debug.write("We are not in turbo mode", 2, False)
                 self.connection.commit()
+        debug.write("[SourceRPG] SQL Save handled", 1)
         
     def clear(self, saveDatabase = True):
         """
@@ -569,17 +583,21 @@ CREATE TABLE IF NOT EXISTS Skill (
         
         @PARAM saveDatabase - optional value, if True, it will commit the database
         """
+        debug.write("[SourceRPG] Clearing database")
         self.execute("DROP TABLE Player")
         self.execute("DROP TABLE Skill")
         if saveDatabase:
             self.save()
+        debug.write("[SourceRPG] Database cleared")
         
     def close(self):
         """
         Closes the connections so that no further queries can be made.
         """
+        debug.write("[SourceRPG] handling SQL close", 1)
         self.cursor.close()
         self.connection.close()
+        debug.write("[SourceRPG] SQL close handled", 1)
 
 """ Skills interface """
 
@@ -931,6 +949,7 @@ class PlayerObject(object):
         
         @PARAM userid - the userid of the player
         """
+        debug.write("[SourceRPG] PlayerObject constructor, userid %s" % self.userid, 1)
         self.userid   = int( userid )
         self.steamid  = playerlib.uniqueid( userid, True )
         self.name     = es.getplayername( userid )
@@ -946,6 +965,7 @@ class PlayerObject(object):
         self.update()
         self.playerAttributes = {}
         self.resetPlayerDefaultAttributes()
+        debug.write("[SourceRPG] PlayerObject created for player: %s" % self.name, 1)
  
     def setCommand(self):
         """
@@ -962,7 +982,9 @@ class PlayerObject(object):
         Ensure that the players stats are updated to the database when the player
         instance is removed.
         """
+        debug.write("[SourceRPG] PlayerObject destructor for player %s (userid: %s)" % (self.name, self.userid), 1)
         self.commit()
+        debug.write("[SourceRPG] PlayerObject successfully destroyed", 1)
         
     def __int__(self):
         """
@@ -985,9 +1007,12 @@ class PlayerObject(object):
         
         @PARAM attribute - the attribute as a string name
         """
+        debug.write("[SourceRPG] Accessing attribute outside of the PlayerObject scope", 4)
         if attribute in vars(CommandsDatabase):
+            debug.write("[SourceRPG] Returning a command link to the CommandsDatabase object". 4)
             return self.CommandLink(attribute, self.command)
         else:
+            debug.write("[SourceRPG] Attribut %s not found", 1)
             raise AttributeError, "Function or Attribute %s cannot be found" % attribute
             
     class CommandLink(object):
@@ -1015,6 +1040,7 @@ class PlayerObject(object):
             @PARAM OPTIONAL *args - list of arguments to unpack
             @PARAM OPTIONAL **kw - dictionary of optional arguments to unpack 
             """
+            debug.write("[SourceRPG] Executing the function %s within the CommandsDatabase" % self.function, 4)
             vars(CommandsDatabase)[self.function](self.instance, *args, **kw)
             
         
@@ -1026,15 +1052,19 @@ class PlayerObject(object):
         
         @PARAM item - the item of which you'd wish to retrieve from the dictionaries.
         """
+        debug.write("[SourceRPG] Handling retrieving of attribute %s for player %s" % (item, self.name), 3)
         if item in self.currentAttributes:
+            debug.write("Item is in current attributes, return", 4)
             return self.currentAttributes[item]
         if item in self.currentSkills:
+            debug.write("Item is a skill, return skill level")
             level = self.currentSkills[item]
             if item in skills:
                 if level > int(skills[item].maxLevel):
                     level = int(skills[item].maxLevel)
             return level
         if item in self.playerAttributes:
+            debug.write("The item is an attribute, return from the local cache", 4)
             return self.playerAttributes[item]
         if item in skills:
             """ 
@@ -1042,7 +1072,9 @@ class PlayerObject(object):
             yet and rather than create one because we don't need it yet, we can
             just return 0
             """
+            debug.write("Skill not in player's cache, but is loaded, assume no level", 4)
             return 0
+        debug.write("Value not found, return 0", 3)
         return None
         
     def __setitem__(self, item, value):
@@ -1053,24 +1085,31 @@ class PlayerObject(object):
         @PARAM item - the item to set the value to
         @PARAM value - the value that item will hold
         """
+        debug.write("[SourceRPG] Assigning attribute %s with the value of %s to player %s" % (item, value, self.name), 3)
         if item in self.currentAttributes:
+            debug.write("Value is in current attributes, assign to the currentAttributes dict", 4)
             self.currentAttributes[item] = value
         elif item in self.currentSkills or item in skills:
+            debug.write("Value is in skills, assign to the currentSkills dict", 4)
             self.currentSkills[item] = value
         else:
+            debug.write("Value is not in any dictionary, assign to the custom playerAttributes dict", 4)
             self.playerAttributes[item] = value
+        debug.write("[SourceRPG] Value updated", 3)
         
     def resetPlayerDefaultAttributes(self):
         """
         All the default virtual information about a player which is not database
         related should be set here such as maximum speed and maximum health
         """
+        debug.write("[SourceRPG] Resetting player %s default attribute" % self.name, 2)
         self.playerAttributes['baseHealth'] = 100
         self.playerAttributes['maxHealth']  = 100
         self.playerAttributes['maxSpeed']   = 1.0
         self.playerAttributes['maxGravity'] = 1.0
         self.playerAttributes['minStealth'] = 255
         self.playerAttributes['maxArmor']   = 100
+        debug.write("[SourceRPG] Attributes reset")
         
     def getSkillLevel(self, skillName):
         """
@@ -1089,33 +1128,42 @@ class PlayerObject(object):
         values will be uploaded thus saving resources by constantly querying the
         database. If turbo mode is on the database will not commit.
         """
-        
+        debug.write("[SourceRPG] Committing player stats", 2)
         if not currentTurboMode:
             """ Update the player's generic static stats """
             for key, value in self.currentAttributes.iteritems():
+                debug.write("Testing cache on %s" % key, 3)
                 if key in self.oldAttributes:
                     # We only want to update current attributes.
+                    debug.write("Cache is old, needs updating to db", 4)
                     if value <> self.oldAttributes[key]:
                         database.execute("UPDATE Player SET %s=? WHERE UserID=?" % key,
                                                   value,
-                                                  self.dbUserid)           
+                                                  self.dbUserid)       
+                    debug.write("Cache updated", 4)    
             """ Update the skills """
             for key, value in self.currentSkills.iteritems():
+                debug.write("Testing cache on %s" % key, 3)
                 if key not in self.oldSkills:
+                    debug.write("Skill does not exist, insert into DB", 3)
                     database.execute("INSERT INTO Skill (name, UserID, level) VALUES (?,?,?)",
                                              key,
                                              self.dbUserid,
                                              value)
                 else:
+                    debug.write("Skill updated, update DB", 4)
                     if value <> self.oldSkills[key]:
                         database.execute("UPDATE Skill SET level=? WHERE UserID=? AND name=?",
                                                      value,
                                                      self.dbUserid,
                                                      key )
+                    debug.write("Cache updated", 4)
             
             """ Make sure the old attributes are updates """
             self.oldAttributes = self.currentAttributes.copy()
             self.oldSkills = self.currentSkills.copy()
+            debug.write("Local cache objects updated to the new changes", 2)
+        debug.write("[SourceRPG] Player stats commited", 2)
         
     def update(self):
         """
@@ -1190,8 +1238,10 @@ class CommandsDatabase(object):
         
         @PARAM userid - the id of the user which the commands execute on
         """
+        debug.write("[SourceRPG] CommandsDatabase object constructor for userid %s" % self.userid, 1)
         self.userid = int(userid)
         self.player = players[userid] 
+        debug.write("[SourceRPG] CommandsDtabase object created", 1)
     
     def addXp(self, amount, reason = "", tellUserOverride = True):
         """
@@ -1203,16 +1253,20 @@ class CommandsDatabase(object):
         @PARAM OPTIONAL reason - the reason that the experience was added
         @PARAM OPTIONAL tellUserOverride - whether or not that the message will be sent (if False, then it will ignore announceXp server var)
         """
+        debug.write("[SourceRPG] Handling addXp function for userid %s" % self.userid, 1)
         if not amount:
+            debug.write("No experience given, return early", 1)
             return
         
         """ If turbo mode is on the multiply the experience gained """
         if currentTurboMode:
+            debug.write("Turbo mode is on, multiply experience gain", 2)
             amount = int( amount * float(turboXpMultiplier) )
             
         oldXp = self.player['xp']
         currentXp  = amount + oldXp
         currentLevel   = self.player['level']
+        debug.write("OldXp: %s, currentXp: %s, currentLevel: %s" % (oldXp, currentXp, currentLevel), 2 )
         
         amountOfLevels = 0
         nextLevelXp    = (currentLevel - 1) * int(xpIncrement) + int(startXp)
@@ -1222,6 +1276,8 @@ class CommandsDatabase(object):
             amountOfLevels += 1
             currentXp      -= nextLevelXp
             nextLevelXp += int(xpIncrement)
+        
+        debug.write("Amount of levels gained: %s" % amountOfLevels, 2)
             
         """ If the server owner wishes, tell them the message """
         if tellUserOverride is True and int(announceXp):
@@ -1244,6 +1300,8 @@ class CommandsDatabase(object):
         values["reason"] = ("setstring", reason if reason else " ")
         gamethread.delayed(0, fireEvent, ("sourcerpg_gainxp", values))
         
+        debug.write("[SourceRPG] addXP handled", 2)
+        
         if amountOfLevels:
             self.addLevel( amountOfLevels )
             
@@ -1253,7 +1311,8 @@ class CommandsDatabase(object):
         and build the skills menu for them
         
         @PARAM amount - the amount of levels to add
-        """
+        """ .
+        debug.write("[SourceRPG] Handling addLevel", 1)
         self.player['level'] += amount
         
         """ If turbo mode is on multipliy the credits received """
@@ -1264,17 +1323,21 @@ class CommandsDatabase(object):
         
         """ Check if the level has reached the limit """
         if int(maxLevel) and self.player['level'] > int(maxLevel):
+            debug.write("Maximum level reached, ensure that resetSkills", 1)
             """ If we want to reset the skills, reset them """
             if int(maxLevelReset):
                 self.resetSkills()
                 tell(self.userid, 'maximum level reached')
+                debug.write("Levels Reset", 1)
             else:
                 """ Othewise assign the level and XP to the maximum possible """
                 self.player['level'] = int(maxLevel)
                 self.player['xp']    = (self.player['level'] - 1) * int(xpIncrement) + int(startXp) - 1
+                debug.write("Assigned XP to maximum value", 1)
         else:        
             """ The level is okay, check for bots and play the message etc """
             if not self.player.isbot:
+                debug.write("Player is not a bot", 2)
                 """ Only do the following for humans """
                 if not int(levelUp):
                     tokens = {}
@@ -1284,36 +1347,41 @@ class CommandsDatabase(object):
                     tell( self.userid, 'level gained private', tokens )
                 
                 if self.player['popup']:
+                    debug.write("Building skill menu", 1)
                     buildSkillMenu(self.userid)
             
             else:
                 """ Player is a bot, check for the maximum possible level for a bot """
+                debug.write("Bot leveled up, choose a random skill", 2)
                 if int(botMaxLevel) and self.player['level'] > int(botMaxLevel):
+                    debug.write("Reset bot's skills, maximum level achieved", 2)
                     self.resetSkills()
-                """ Upgrade a random skill if possible """
-                while True:
-                    """ Loop until we manually break """
-                    possibleChoices = []
-                    credits = self.player['credits']
-                    for skill in skills:
-                        """ 
-                        Iterate through all loaded skills and if the bot
-                        can afford the skill, append it to the possible choices
-                        """
-                        if credits >= self.player[skill.name] * skill.creditIncrement + skill.startCredit:
-                            if self.player[skill.name] < skill.maxLevel:
-                                possibleChoices.append(skill.name)
-                    if not possibleChoices:
-                        """ 
-                        The bot cannot afford any skills or has maxed out
-                        the skills, the manually break
-                        """
-                        break
+                else:
+                    """ Upgrade a random skill if possible """
+                    while True:
+                        """ Loop until we manually break """
+                        possibleChoices = []
+                        credits = self.player['credits']
+                        for skill in skills:
+                            """ 
+                            Iterate through all loaded skills and if the bot
+                            can afford the skill, append it to the possible choices
+                            """
+                            if credits >= self.player[skill.name] * skill.creditIncrement + skill.startCredit:
+                                if self.player[skill.name] < skill.maxLevel:
+                                    possibleChoices.append(skill.name)
+                        if not possibleChoices:
+                            """ 
+                            The bot cannot afford any skills or has maxed out
+                            the skills, the manually break
+                            """
+                            break
                     
                     """ 
                     Finally call the checkSkillForUpgrading function passing
                     the arguments manually rather than letting a popup do it
                     """
+                    debug.write("Checking to update a skill", 2)
                     checkSkillForUpgrading(self.userid, random.choice(possibleChoices), None, False )
             
             if int(levelUp):
@@ -1338,6 +1406,7 @@ class CommandsDatabase(object):
             values["xp"] = ("setint", self.player['xp'])
             values["xpneeded"] = ("setint", (self.player['level'] - 1) * int(xpIncrement) + int(startXp))
             gamethread.delayed(0, fireEvent, ("sourcerpg_levelup", values))
+        debug.write("[SourceRPG] Handled addLevel", 1)
                 
     def resetSkills(self):
         """
@@ -1395,11 +1464,14 @@ class RankManager(object):
         """
         Updates the ranks with the latest information from the sqlite database
         """
+        debug.write("[SourceRPG] Updating all ranked positions", 1)
         database.execute("SELECT steamid FROM Player ORDER BY level DESC,xp DESC")
         results = database.cursor.fetchall()
         self.ranks = []
-        for steamid in results:
+        for index, steamid in enumerate(results):
+            debug.write("Rank: %s Steamid: %s" % (index, steamid), 5)
             self.ranks.append(steamid[0])
+        debug.write("[SourceRPG] All ranked positions updated", 1)
         
     def getRank(self, steamid):
         """
@@ -2042,10 +2114,14 @@ def player_activate(event_var):
     
     @PARAM event_var - an automatically passed event instance
     """
+    debug.write("[SourceRPG] Handling player_activate", 1)
     if "PENDING" in event_var['es_steamid']:
+        debug.write("[SourceRPG] Player joining had a pending steamid, being kicked")
         es.server.cmd('kickid %s "We had an error with you joining, please reconnect"' % event_var['userid'])
     else:
+        debug.write("Player successfully joined and activated", 1)
         players.addPlayer( event_var['userid'] )
+    debug.write("[SourceRPG] player_activate handled", 1)
     
 def player_disconnect(event_var):
     """
@@ -2056,11 +2132,15 @@ def player_disconnect(event_var):
     
     @PARAM event_var - an automatically passed event instance
     """
+    debug.write("[SourceRPG] Handling player_disconnect", 1)
     userid = event_var['userid']
     gamethread.cancelDelayed('sourcerpg_reset_%s' % userid)
     if userid in players:
+        debug.write("Remove player instance from players manager", 1)
         players[userid]['lastconnected'] = int(time.time())
+        debug.write("Calling object destructor...", 1)
         del players[userid] # call's the destructor
+    debug.write("[SourceRPG] player_disconnect handled", 1)
     
 def player_changename(event_var):
     """
@@ -2069,7 +2149,9 @@ def player_changename(event_var):
     
     @PARAM event_var - an automatically passed event instance
     """
+    debug.write("[SourceRPG] Handling player_changename", 1)
     players[event_var['userid']]['name'] = event_var['newname']
+    debug.write("[SourceRPG] player_changename handled", 1)
     
 def round_end(event_var):
     """
@@ -2079,7 +2161,7 @@ def round_end(event_var):
     
     @PARAM event_var - event variable instancce passed automatically
     """
-    debug.write("Round End Processing", 1)
+    debug.write("[SourceRPG] Round End Processing", 1)
     if not currentTurboMode:
         debug.write("Normal mode is on", 1)
         if str(saveType).lower() == "round end":
@@ -2092,7 +2174,7 @@ def round_end(event_var):
         if player is not None:
             debug.write("Object successfully fetched, delaying 4.8 seconds to reset default attributes", 2)
             gamethread.delayedname(4.8, 'sourcerpg_reset_%s' % player, player.resetPlayerDefaultAttributes)
-    debug.write("Round End has been processed\n", 1)
+    debug.write("[SourceRPG] Round End has been processed\n", 1)
             
 def player_spawn(event_var):
     """
@@ -2101,19 +2183,23 @@ def player_spawn(event_var):
     
     @PARAM event_var - event variable instance passed automatically
     """
+    debug.write("[SourceRPG] Player Spawn processing", 1)
     userid = event_var['userid']
     if not es.getplayerprop(userid, 'CBasePlayer.pl.deadflag'):
         player = players[userid]
         if player is not None:
             tell(userid, 'round start')
             if int(spawnAnnounce):
+                debug.write("Sending player rank information", 1)
                 tokens = {}
                 tokens['level']  = player['level']
                 tokens['xp']     = player['xp']
                 tokens['nextxp'] = player['level'] * int(xpIncrement) + int(startXp)
                 tell(userid, 'level gained private', tokens)
+                debug.write("Player rank information sent", 1)
             if currentTurboMode and int(turboModeAnnounce):
                 tell(userid, 'turbo mode on')
+    debug.write("[SourceRPG] Player Spawn processsed\n", 1)
         
 def server_cvar(event_var):
     """
@@ -2125,16 +2211,22 @@ def server_cvar(event_var):
     """
     global currentTurboMode
     global database
+    debug.write("[SourceRPG] Handling server_cvar", 1)
     if event_var['cvarname'] == "srpg_turboMode":
+        debug.write("Altering turbo mode", 1)
         newValue = bool( int(event_var['cvarvalue']) )
+        debug.write("New value of turbo mode: %s" % newValue, 1)
         if newValue <> currentTurboMode:
+            debug.write("New Value differs to the old value")
             if newValue:
                 """ Turbo mode was activated. Restart the round """
+                debug.write("Closing database and creating a new memory object", 1)
                 gamethread.cancelDelayed('sourcerpg_databasesave')
                 
                 database = SQLManager(":memory:") # Calls deconstructor on the database
                 es.server.queuecmd('mp_restartgame 2')
             else:
+                debug.write("Closing database and opening the real database",1 )
                 """ Turbo mode was switched off """
                 database = SQLManager(databasePath)
                 es.server.queuecmd('mp_restartgame 2')
@@ -2148,10 +2240,12 @@ def server_cvar(event_var):
                 
             """ Ensure that all players are activated and their new values are reset """
             for player in es.getUseridList():
+                debug.write("Reloading stats for player %s" % es.getplayername(player), 2)
                 tokens = {}
                 tokens['userid']     = player
                 tokens['es_steamid'] = es.getplayersteamid(player)
                 player_activate(tokens)
+    debug.write("[SourceRPG] server_cvar handled", 1)
                 
 def player_death(event_var):
     """
@@ -2159,15 +2253,20 @@ def player_death(event_var):
     
     @PARAM event_var - an automatically passed argument as the event instance
     """
+    debug.write("[SourceRPG] Handling player_death", 1)
     userid   = event_var['userid']
     attacker = event_var['attacker']
     """ Only pass if the user did not kill themselves and are not on the same team """
     if userid <> attacker:
+        debug.write("Userid is not the same as the attacker", 2)
         if attacker.isdigit() and int(attacker) > 0:
+            debug.write("Attacker is not of world spawn", 2)
             if event_var['es_userteam'] <> event_var['es_attacker']:
                 """ If one of the players is a bot and is not legible for experience, return """
+                debug.write("Users are on different teams", 2)
                 if not canReceiveExperience(userid, attacker):
                     return
+                debug.write("Adding the experience", 1)
                 player = players[attacker]
                 player.addXp( int(killXp) * players[userid]['level'], "making a kill" )
                 if event_var['headshot'] and int(event_var['headshot']):
@@ -2177,7 +2276,9 @@ def player_death(event_var):
                     if weaponXp[weapon][1]:
                         useN = "n" if weapon[0] in ("a", "e", "i", "o", "u") else ""
                         player.addXp( weaponXp[weapon][1], "killing a player with a%s %s" % ( useN, weapon ) )
+    debug.write("Resetting player to default attributes", 1)
     players[userid].resetPlayerDefaultAttributes()
+    debug.write("[SourceRPG] player_death handled", 1)
                     
 def player_hurt(event_var):
     """
@@ -2185,15 +2286,20 @@ def player_hurt(event_var):
     
     @PARAM event_var - an automatically passed argument as the event instance.
     """
+    debug.write("[SourceRPG] handling player_hurt", 1)
     userid   = event_var['userid']
     attacker = event_var['attacker']
     """ Only pass if the user did not kill themselves and are not on the same team """
     if userid <> attacker:
+        debug.write("Playerids are not the same", 2)
         if attacker.isdigit() and int(attacker) > 0:
+            debug.write("Attacker is not work spawn", 2)
             if event_var['es_userteam'] <> event_var['es_attacker']:
                 """ If one of the players is a bot and is not legible for experience, return """
+                debug.write("Players are not on the same team", 2)
                 if not canReceiveExperience(userid, attacker):
                     return
+                debug.write("Handling the experience rewards", 1)
                 player = players[attacker]
                 weapon = event_var['weapon']
                 if weapon in weaponXp:
@@ -2201,6 +2307,7 @@ def player_hurt(event_var):
                         player.addXp( weaponXp[weapon][0], tellUserOverride = False)
                 else:
                     player.addXp( int(damageXp), tellUserOverride = False )
+    debug.write("[SourceRPG] player_hurt handled", 1)
     
 def bomb_planted(event_var):
     """
@@ -2208,11 +2315,13 @@ def bomb_planted(event_var):
     
     @PARAM event_var - an automatically passed argument as the event instance.
     """
+    debug.write("[SourceRPG] Handling bomb_planted", 1)
     if isFairForTeam(event_var['es_userteam']) or not int(unfairAdvantage):
         if es.isbot(event_var['userid']) and not int(botsGetXpOnEvents):
             return
         player = players[event_var['userid']]
         player.addXp( int(bombPlantXp) * player['level'], 'planting the bomb' )
+    debug.write("[SourceRPG] bomb_planted handled", 1)
 
 def bomb_exploded(event_var):
     """
@@ -2220,11 +2329,13 @@ def bomb_exploded(event_var):
     
     @PARAM event_var - an automatically passed argument as the event instance.
     """
+    debug.write("[SourceRPG] Handling bomb_exploded", 1)
     if isFairForTeam(event_var['es_userteam']) or not int(unfairAdvantage):
         if es.isbot(event_var['userid']) and not int(botsGetXpOnEvents):
             return
         player = players[event_var['userid']]
         player.addXp( int(bombExplodeXp) * player['level'], 'allowing the bomb to explode' )
+    debug.write("[SourceRPG] bomb_exploded handled", 1)
     
 def bomb_defused(event_var):
     """
@@ -2232,11 +2343,13 @@ def bomb_defused(event_var):
     
     @PARAM event_var - an automatically passed argument as the event instance.
     """
+    debug.write("[SourceRPG] Handling bomb_defused", 1)
     if isFairForTeam(event_var['es_userteam']) or not int(unfairAdvantage):
         if es.isbot(event_var['userid']) and not int(botsGetXpOnEvents):
             return
         player = players[event_var['userid']]
         player.addXp( int(bombDefuseXp) * player['level'], 'defusing the bomb' )
+    debug.write("[SourceRPG] bomb_defused handled", 1)
     
 def hostage_follows(event_var):
     """
@@ -2244,11 +2357,13 @@ def hostage_follows(event_var):
     
     @PARAM event_var - an automatically passed argument as the event instance.
     """
+    debug.write("[SourceRPG] Handling hostage_follows", 1)
     if isFairForTeam(event_var['es_userteam']) or not int(unfairAdvantage):
         if es.isbot(event_var['userid']) and not int(botsGetXpOnEvents):
             return
         player = players[event_var['userid']]
         player.addXp( int(hostageFollowsXp) * player['level'], 'making a hostage follow you' )
+    debug.write("[SourceRPG] hostage_follows handled", 1)
     
 def hostage_rescued(event_var):
     """
@@ -2256,11 +2371,13 @@ def hostage_rescued(event_var):
     
     @PARAM event_var - an automatically passed argument as the event instance.
     """
+    debug.write("[SourceRPG] Handling hostage_rescued", 1)
     if isFairForTeam(event_var['es_userteam']) or not int(unfairAdvantage):
         if es.isbot(event_var['userid']) and not int(botsGetXpOnEvents):
             return
         player = players[event_var['userid']]
         player.addXp( int(hostageRescueXp) * player['level'], 'rescuing a hostage' )
+    debug.write("[SourceRPG] hostage_rescued handled", 1)
     
 def isFairForTeam(teamNumber):
     """
@@ -2270,7 +2387,9 @@ def isFairForTeam(teamNumber):
     @PARAM teamNumber - test to see if it's fair for the players team
     @RETURN boolean - whether or not it's fair
     """
+    debug.write("Testing if experience gain is fair for player teams", 2)
     if not 1 < int(teamNumber) < 4:
+        debug.write("Incorrect teamnumber passed, teams are not fair", 2)
         return False 
     return bool( es.getlivingplayercount( 5 - int( teamNumber ) ) )
     
@@ -2283,14 +2402,20 @@ def canReceiveExperience(userid, attacker):
     @PARAM attacker - the attacker involved
     @RETURN boolean - whether or not the attacker is legible for experience
     """
+    debug.write("Testing if user can gain experience", 2)
     if not es.isbot(userid) and not es.isbot(attacker):
+        debug.write("Both players are humans, experience gain is fair", 2)
         return True
     if es.isbot(attacker):
+        debug.write("Attacker is a bot", 2)
         if es.isbot(attacker):
+            debug.write("Victim is a bot", 2)
             return bool( int( botsGetXpVsBots ) )
         else:
+            debug.write("Victim is a human", 2)
             return bool( int( botsGetXpVsHumans ) )
     else:
+        debug.write("Victim is a bot, attacker is a human", 2)
         return bool( int( humansGetXpVsBots ) )
     
 def getSteamid(value):
@@ -2330,9 +2455,6 @@ def saveDatabase():
         debug.write("SQLite database saved", 1)
         debug.write("Creating the event", 1)
         """ Create and fire the event """
-        #es.event("initialize", "sourcerpg_databasesaved")
-        #es.event("setstring",  "sourcerpg_databasesaved", "type", str(saveType) )
-        #es.event("fire",       "sourcerpg_databasesaved")
         values = {"type":("setstring", str(saveType))}
         gamethread.delayed(0, fireEvent, ("sourcerpg_databasesaved", values))
         debug.write("Event fired", 1)
@@ -2350,7 +2472,9 @@ def buildSkillMenu(userid):
     
     @PARAM userid - the userid of the player the popup should be built for
     """
+    debug.write("[SourceRPG] Handling buildSkillMenu for userid %s" % userid, 2)
     player    = players[userid]
+    debug.write("building popup", 2)
     skillMenu = popuplib.easymenu("sourcerpg_skillsmenu_user%s" % userid, "_popup_choice", checkSkillForUpgrading)
     skillMenu.settitle("Select a skill to upgrade:\nCredits: %s\nPage: " % player["credits"])
     for skill in skills:
@@ -2362,7 +2486,9 @@ def buildSkillMenu(userid):
             cost = level * int(skill.creditIncrement) + int(skill.startCredit)
             skillMenu.addoption(skill.name, skill.name + " => %s [COST %s]" % (level + 1, cost), bool(player['credits'] >= cost) )
     skillMenu.c_exitformat = "0. Close"
+    debug.write("popup built", 2)
     skillMenu.send(userid)
+    debug.write("[SourceRPG] Handled buildSkillMenu for userid %s" % userid, 2)
     
 def checkSkillForUpgrading(userid, choice, popupid, resend = True, useCredits = True):
     """
@@ -2423,7 +2549,9 @@ def buildSellMenu(userid):
     
     @PARAM userid - the userid of the player the popup should be built for
     """
+    debug.write("[SourceRPG] Handling buildSellMenu for userid %s" % userid, 2)
     player   = players[userid]
+    debug.write("building popups")
     sellMenu = popuplib.easymenu("sourcerpg_sellmenu_user%s" % userid, "_popup_choice", checkSkillForSelling)
     sellMenu.settitle("Select a skill to sell:\nCredits: %s\nPage: " % player["credits"])
     for skill in skills:
@@ -2433,7 +2561,9 @@ def buildSellMenu(userid):
         else:
             sellMenu.addoption(None, skill.name + " [NEED LEVEL]", False)
     sellMenu.c_exitformat = "0. Close"
+    debug.write("popup built")
     sellMenu.send(userid)
+    debug.write("[SourceRPG] Handled buildSellMenu for userid %s" % userid, 2)
 
 def checkSkillForSelling(userid, choice, popupid, resend=True, gainCredits = True):
     """
@@ -2611,8 +2741,12 @@ def fireEvent(eventName, values):
         e.g.:
         {"userid"} = ("setint", 2)
     """
+    debug.write("[SourceRPG] Handling custom event firing", 1)
+    debug.write("[SourceRPG] Firing event %s" % eventName, 1)
     es.event("initialize", eventName)
     for key, value in values.iteritems():
+        debug.write("[SourceRPG] (Type: %s) %s=%s" % (value[0], key, value[1]), 2)
         es.event(value[0], eventName, key, value[1])
-    
+    debug.write("[SourceRPG] Firing event", 1)
     es.event("fire", eventName)
+    debug.write("[SourceRPG] custom event firing handled", 1)

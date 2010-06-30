@@ -142,12 +142,6 @@ class HealObject(repeat.Repeat):
                 healing  = int(healingInc) * level
                 armor    = 0
 
-                if bool( int(effects) ) and bool( es.ServerVar('est_version') ):
-                    """ Create an effect if the server owner wants to """
-                    filt = {3:'#c', 2:'#t'}[team]
-                    es.server.queuecmd('est_effect 10 %s 0 "sprites/lgtning.vmt" %s %s %s %s 20 0.2 10 10 0 0 255 0 255 30' % (filt, x, y, z, distance) )
-                    es.server.queuecmd('est_effect 10 %s 0.2 "sprites/lgtning.vmt" %s %s %s %s 20 0.2 10 10 0 0 255 0 255 30' % (filt, x, y, z, distance) )
-
                 for teamPlayer in filter(lambda x: es.getplayerteam(x) == team and not es.getplayerprop(x, 'CBasePlayer.pl.deadflag'), es.getUseridList() ):
                     """ Loop through all the living players on their team """
                     xx, yy, zz = es.getplayerlocation(teamPlayer)
