@@ -540,7 +540,7 @@ CREATE TABLE IF NOT EXISTS Skill (
         """
         debug.write("[SourceRPG] Fetching one object value", 2)
         result = self.cursor.fetchone()
-        debug.write("The initial value is: %s" % value, 2)
+        debug.write("The initial value is: %s" % (result,), 2)
         if hasattr(result, "__iter__"):
             debug.write("Attribute has iterable, test to see if there's only 1 value", 2)
             if len(result) == 1:
@@ -583,12 +583,12 @@ CREATE TABLE IF NOT EXISTS Skill (
         
         @PARAM saveDatabase - optional value, if True, it will commit the database
         """
-        debug.write("[SourceRPG] Clearing database")
+        debug.write("[SourceRPG] Clearing database", 1)
         self.execute("DROP TABLE Player")
         self.execute("DROP TABLE Skill")
         if saveDatabase:
             self.save()
-        debug.write("[SourceRPG] Database cleared")
+        debug.write("[SourceRPG] Database cleared", 1)
         
     def close(self):
         """
@@ -949,7 +949,7 @@ class PlayerObject(object):
         
         @PARAM userid - the userid of the player
         """
-        debug.write("[SourceRPG] PlayerObject constructor, userid %s" % self.userid, 1)
+        debug.write("[SourceRPG] PlayerObject constructor, userid %s" % userid, 1)
         self.userid   = int( userid )
         self.steamid  = playerlib.uniqueid( userid, True )
         self.name     = es.getplayername( userid )
@@ -1009,7 +1009,7 @@ class PlayerObject(object):
         """
         debug.write("[SourceRPG] Accessing attribute outside of the PlayerObject scope", 4)
         if attribute in vars(CommandsDatabase):
-            debug.write("[SourceRPG] Returning a command link to the CommandsDatabase object". 4)
+            debug.write("[SourceRPG] Returning a command link to the CommandsDatabase object", 4)
             return self.CommandLink(attribute, self.command)
         else:
             debug.write("[SourceRPG] Attribut %s not found", 1)
@@ -1057,7 +1057,7 @@ class PlayerObject(object):
             debug.write("Item is in current attributes, return", 4)
             return self.currentAttributes[item]
         if item in self.currentSkills:
-            debug.write("Item is a skill, return skill level")
+            debug.write("Item is a skill, return skill level", 4)
             level = self.currentSkills[item]
             if item in skills:
                 if level > int(skills[item].maxLevel):
@@ -1109,7 +1109,7 @@ class PlayerObject(object):
         self.playerAttributes['maxGravity'] = 1.0
         self.playerAttributes['minStealth'] = 255
         self.playerAttributes['maxArmor']   = 100
-        debug.write("[SourceRPG] Attributes reset")
+        debug.write("[SourceRPG] Attributes reset", 2)
         
     def getSkillLevel(self, skillName):
         """
@@ -1238,7 +1238,7 @@ class CommandsDatabase(object):
         
         @PARAM userid - the id of the user which the commands execute on
         """
-        debug.write("[SourceRPG] CommandsDatabase object constructor for userid %s" % self.userid, 1)
+        debug.write("[SourceRPG] CommandsDatabase object constructor for userid %s" % userid, 1)
         self.userid = int(userid)
         self.player = players[userid] 
         debug.write("[SourceRPG] CommandsDtabase object created", 1)
@@ -1311,7 +1311,7 @@ class CommandsDatabase(object):
         and build the skills menu for them
         
         @PARAM amount - the amount of levels to add
-        """ .
+        """
         debug.write("[SourceRPG] Handling addLevel", 1)
         self.player['level'] += amount
         
@@ -2217,7 +2217,7 @@ def server_cvar(event_var):
         newValue = bool( int(event_var['cvarvalue']) )
         debug.write("New value of turbo mode: %s" % newValue, 1)
         if newValue <> currentTurboMode:
-            debug.write("New Value differs to the old value")
+            debug.write("New Value differs to the old value", 1)
             if newValue:
                 """ Turbo mode was activated. Restart the round """
                 debug.write("Closing database and creating a new memory object", 1)
@@ -2551,7 +2551,7 @@ def buildSellMenu(userid):
     """
     debug.write("[SourceRPG] Handling buildSellMenu for userid %s" % userid, 2)
     player   = players[userid]
-    debug.write("building popups")
+    debug.write("building popups", 1)
     sellMenu = popuplib.easymenu("sourcerpg_sellmenu_user%s" % userid, "_popup_choice", checkSkillForSelling)
     sellMenu.settitle("Select a skill to sell:\nCredits: %s\nPage: " % player["credits"])
     for skill in skills:
@@ -2561,7 +2561,7 @@ def buildSellMenu(userid):
         else:
             sellMenu.addoption(None, skill.name + " [NEED LEVEL]", False)
     sellMenu.c_exitformat = "0. Close"
-    debug.write("popup built")
+    debug.write("popup built", 1)
     sellMenu.send(userid)
     debug.write("[SourceRPG] Handled buildSellMenu for userid %s" % userid, 2)
 
