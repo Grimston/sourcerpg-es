@@ -2353,7 +2353,7 @@ def checkSkillForUpgrading(userid, choice, popupid, resend = True, useCredits = 
         values["level"] = ("setint", player[str(skill.name)])
         values["cost"] = ("setint", creditsRequired)
         values["skill"] = str(skill.name)
-        gamethread.delayed(0, fireEvent, "sourcerpg_skillupgrade", values)
+        gamethread.delayed(0, fireEvent, ("sourcerpg_skillupgrade", values))
         
     else:
     

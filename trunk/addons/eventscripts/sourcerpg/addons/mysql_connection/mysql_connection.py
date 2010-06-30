@@ -59,11 +59,17 @@ class MySQLDatabaseManager(sourcerpg.SQLiteManager):
         """
         self.path = "MySQL: %s@%s" % (mysqlUser, mysqlHostName)
         self.lastSaved = time.time()
-        self.connection = pymysql.connect(host=str(mysqlHostName), user=str(mysqlUser), passwd=str(mysqlPassword))
+        if str(mysqlUnixSocket):
+            self.connection = pymysql.connect(host=str(mysqlHostName), user=str(mysqlUser), passwd=str(mysqlPassword), unix_socket=str(mysqlUnixSocket))
+        else:
+            self.connection = pymysql.connect(host=str(mysqlHostName), user=str(mysqlUser), passwd=str(mysqlPassword))
         self.cursor = self.connection.cursor()
 
-        self.execute("CREATE DATABASE IF NOT EXISTS ?", self.NonStringArg(str(mysqlTable)))
-        self.execute("USE ?", self.NonStringArg(str(mysqlTable)))
+        try:
+            self.execute("CREATE DATABASE IF NOT EXISTS ?", self.NonStringArg(str(mysqlDatabase)))
+        except:
+            pass
+        self.execute("USE ?", self.NonStringArg(str(mysqlDatabase)))
 
         """ Create the table to hold the players global stats """
         self.execute("""\
@@ -207,7 +213,10 @@ config = cfglib.AddonCFG(configPath)
 config.text("MySQL Connection Version %s" % sourcerpg.info.version)
 config.text("This is the configuration for your mysql server")
 mysqlHostName = config.cvar("sourcerpg_mysql_host", "localhost", "The IP / HostName of the MySQL server")
-mysqlUser = config.cvar("sourcerpg_mysql_user", "Username", "The username for the MySQL connection")
-mysqlPassword = config.cvar("sourcerpg_mysql_password", "passsword", "The passworfd for the user of the MySQL connection")
-mysqlTable = config.cvar("sourcerpg_mysql_table", "sourcerpg_players", "The table used to store the information, leave as default unless you know what you're doing\n// Note: This will create the table if it doesn't already exist and you have the permissions")
-    
+mysqlUser = config.cvar("sourcerpg_mysql_user", "Root", "The username for the MySQL connection")
+mysqlPassword = config.cvar("sourcerpg_mysql_password", "Password", "The passworfd for the user of the MySQL connection")
+mysqlDatabase = config.cvar("sourcerpg_mysql_database", "sourcerpg_players", "The database used to store the information, leave as default unless you know what you're doing\n// Note: This will create the database if it doesn't already exist and you have the permissions")
+mysqlUnixSocket = config.cvar("sourcerpg_mysql_unix_socket", "", """If you are connecting via an unix socket, please input the path to the mysql.sock.
+// NOTE: This is a VERY advanced technique and should be left alone by almost everyone.
+// This will only work on linux systems on a localhost, so remote servers won't work
+// with this. Leave blank for no socket (default)""")
