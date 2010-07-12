@@ -30,9 +30,10 @@ import cfglib
 import cmdlib
 
 # Set the addon info data
+revision = int(filter(str.isdigit, "$Revision$"))
 info = es.AddonInfo()
 info.name     = 'SourceRPG'
-info.version  = '2.1.054'
+info.version  = '2.1.%03d' % revision
 info.basename = 'sourcerpg'
 info.author   = 'Freddukes AKA Pro Noob'
 info.url      = 'http://addons.eventscripts.com/addons/view/%s' % info.basename

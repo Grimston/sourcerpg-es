@@ -152,7 +152,10 @@ class RegenObject(object):
         """
         if isinstance(amount, int):
             if es.exists('userid', self.userid):
-                currentHealth = self.getHealth(self.userid) + amount
+                currentHealth = self.getHealth(self.userid)
+                if currentHealth is None:
+                    return
+                currentHealth += amount
                 player = sourcerpg.players[self.userid]
                 if currentHealth == amount:
                     gamethread.delayed(0, self.stopRegen)

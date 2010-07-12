@@ -73,7 +73,7 @@ class SmokeGrenadeManager(object):
 
             """ Remove the entity if it exists """
             if entity in es.createentitylist("smokegrenade_projectile"):
-                es.server.queuecmd('es_xremove %s' % entity)
+                es.remove(entity)
 
     def removeEntitiesFromPlayer(self, player):
         """

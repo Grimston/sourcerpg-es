@@ -1,6 +1,5 @@
 import es
 import gamethread
-import playerlib
 
 from sourcerpg import sourcerpg
 
@@ -52,9 +51,7 @@ def player_hurt(event_var):
                     """ It was not a team kill """
                     if event_var['weapon'] == "hegrenade":
                         """ Was a kill with a grenade """
-                        player = playerlib.getPlayer(userid)
-                        player.burn()
-                        gamethread.delayedname(1.0 * level, 'sourcerpg_burn_user%s' % userid, player.extinguish)
+                        es.fire(userid, "!self", "IgniteLifetime", 1.0 * level)
                 
 def weapon_fire(event_var):
     """
@@ -67,20 +64,4 @@ def weapon_fire(event_var):
         player = sourcerpg.players[userid]
         if player is not None:
             if player[skillName]:
-                gamethread.delayed(0.1, es.server.queuecmd, 'es_xfire %s hegrenade_projectile ignite' % userid) # delay a tick so the entity is created
-
-def player_death(event_var):
-    """
-    Executed when a player dies - ensure that they are extinguished so we don't
-    create an error
-    
-    @PARAM event_var - an automatically passed event instance
-    """
-    gamethread.cancelDelayed('sourcerpg_burn_user%s' % event_var['userid'])
-    
-def player_disconnect(event_var):
-    """
-    A wrapper which executes the player_death function which just cancels the
-    delay for the player
-    """
-    player_death(event_var)
+                gamethread.delayed(0.1, es.fire, (userid, 'hegrenade_projectile', 'ignite')) # delay a tick so the entity is created

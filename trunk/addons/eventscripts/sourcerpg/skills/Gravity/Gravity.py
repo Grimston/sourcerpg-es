@@ -128,7 +128,7 @@ class GravityObject(object):
         
     def __del__(self):
         """ Default deconstructor; ensure their gravity is assigned back to 0 """
-        es.server.queuecmd('es_xfire %s !self addoutput "gravity 1.0" 0.1 1' % self.userid )
+        es.fire(self.userid, "!self", "addoutput", "gravity 1.0")
         
     def update(self):
         """
@@ -147,10 +147,11 @@ class GravityObject(object):
                                          that value will take presedence over the
                                          default value.
         """
-        if amountOverride is None:
-            es.server.queuecmd('es_xfire %s !self addoutput "gravity %s" 0.1 1'% ( self.userid, self.amount ) )
-        else:
-            es.server.queuecmd('es_xfire %s !self addoutput "gravity %s" 0.1 1'% ( self.userid, amountOverride ) )
+        trueAmount = self.amount
+        if amountOverride is not None:
+            trueAmount = amountOverride
+        #es.fire(self.userid, "!self", "addoutput", '"gravity %s"' % trueAmount)
+        es.fire(self.userid, "!self", "addoutput", "gravity %s" % trueAmount)
        
 """ Create the GravityManager() singleton """
 gravity = GravityManager()
