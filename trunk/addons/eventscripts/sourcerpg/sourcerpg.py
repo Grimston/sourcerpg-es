@@ -30,7 +30,7 @@ import cfglib
 import cmdlib
 
 # Set the addon info data
-revision = int(filter(str.isdigit, "$Revision$"))
+revision = int(filter(str.isdigit, "$Revision: 57$"))
 info = es.AddonInfo()
 info.name     = 'SourceRPG'
 info.version  = '2.1.%03d' % revision
