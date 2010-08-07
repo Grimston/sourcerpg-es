@@ -1662,7 +1662,7 @@ class SayCommandsManager(object):
     @staticmethod
     def mainMenu(userid, args):
         """ Executed when a user types 'rpgmenu' """
-        if popuplib.isqueued("sourcerpg_rpgmenu", userid) is not None:
+        if popuplib.isqueued("sourcerpg_rpgmenu", userid):
             return
         popuplib.send('sourcerpg_rpgmenu', userid)
         
@@ -1687,7 +1687,7 @@ class SayCommandsManager(object):
         """
         Executed when a user types 'rpghelp' in chat. Send the help menu to them
         """
-        if popuplib.isqueued("sourcerpg_help", userid) is not None:
+        if popuplib.isqueued("sourcerpg_help", userid):
             return
         popuplib.send('sourcerpg_help', userid)
     
@@ -1733,7 +1733,7 @@ class SayCommandsManager(object):
         """
         Display the top 10 RPG players
         """
-        if popuplib.isqueued("sourcerpg_rpgtop5", userid) is not None:
+        if popuplib.isqueued("sourcerpg_rpgtop5", userid):
             return
         popuplib.send('sourcerpg_rpgtop5', userid)
         
@@ -1772,7 +1772,7 @@ class PopupCallbacks(object):
             buildSellMenu(userid)
         elif choice == 3:
             """ Send the help menu to the user """
-            if popuplib.isqueued("sourcerpg_help", userid) is not None:
+            if popuplib.isqueued("sourcerpg_help", userid):
                 return
             popuplib.send('sourcerpg_help', userid)
         elif choice == 4:
@@ -1780,7 +1780,7 @@ class PopupCallbacks(object):
             buildStatsMenu(userid, userid)
         else:
             """ Send them the confirmation popup to ensure they wish to delete their skills """
-            if popuplib.isqueued("sourcerpg_confirm", userid) is not None:
+            if popuplib.isqueued("sourcerpg_confirm", userid):
                 return
             popuplib.send('sourcerpg_confirm', userid)
     
@@ -1789,12 +1789,12 @@ class PopupCallbacks(object):
         """ This menu is the callback for the help popup option. """
         if choice == 1:
             """ Send the about this mod popup """
-            if popuplib.isqueued("sourcerpg_about", userid) is not None:
+            if popuplib.isqueued("sourcerpg_about", userid):
                 return
             popuplib.send('sourcerpg_about', userid)
         elif choice == 2:
             """ Send the commands list to the player """
-            if popuplib.isqueued("sourcerpg_commands", userid) is not None:
+            if popuplib.isqueued("sourcerpg_commands", userid):
                 return
             popuplib.send('sourcerpg_commands', userid)
         elif choice == 3:
@@ -1802,7 +1802,7 @@ class PopupCallbacks(object):
             buildSkillsReferencePopup(userid)
         elif choice == 4:
             """ Send the menu crediting authors of this script to the user """
-            if popuplib.isqueued("sourcerpg_creditmenu", userid) is not None:
+            if popuplib.isqueued("sourcerpg_creditmenu", userid):
                 return
             popuplib.send('sourcerpg_creditmenu', userid)
             
@@ -2492,7 +2492,7 @@ def buildSkillMenu(userid):
     
     @PARAM userid - the userid of the player the popup should be built for
     """
-    if popuplib.isqueued("sourcerpg_skillsmenu_user%s" % userid, userid) is not None:
+    if popuplib.isqueued("sourcerpg_skillsmenu_user%s" % userid, userid):
         return
     debug.write("[SourceRPG] Handling buildSkillMenu for userid %s" % userid, 2)
     player    = players[userid]
@@ -2574,7 +2574,7 @@ def buildSellMenu(userid):
     debug.write("[SourceRPG] Handling buildSellMenu for userid %s" % userid, 2)
     player   = players[userid]
     debug.write("building popups", 1)
-    if popuplib.isqueued("sourcerpg_sellmenu_user%s" % userid, userid) is not None:
+    if popuplib.isqueued("sourcerpg_sellmenu_user%s" % userid, userid):
         return
     sellMenu = popuplib.easymenu("sourcerpg_sellmenu_user%s" % userid, "_popup_choice", checkSkillForSelling)
     sellMenu.settitle("Select a skill to sell:\nCredits: %s\nPage: " % player["credits"])
@@ -2637,7 +2637,7 @@ def buildStatsMenu(userid, playerToTest):
     @PARAM userid - the userid who to send the popup to
     @PARAM playerToTest - the player who we shall get the stats of
     """
-    if popuplib.isqueued("sourcerpg_statsmenu_user%s" % userid, userid) is not None:
+    if popuplib.isqueued("sourcerpg_statsmenu_user%s" % userid, userid):
         return
     player = players[playerToTest]
     statsmenu = popuplib.create('sourcerpg_statsmenu_user%s' % userid)
@@ -2664,7 +2664,7 @@ def buildSkillsMenuForPlayer(userid, playerToTest, send = True):
     @PARAM OPTIONAL send - if this is true then the menu will be sent to the player
     @RETRUN string - the name of the popup
     """
-    if popuplib.isqueued("sourcerpg_skillssmenu_user%s" % userid, userid) is not None:
+    if popuplib.isqueued("sourcerpg_skillssmenu_user%s" % userid, userid):
         return 
     popupName = 'sourcerpg_skillsmenu_user%s' % userid
     statsmenu = popuplib.easymenu(popupName, '_popup_choice', None)
@@ -2687,7 +2687,7 @@ def buildSkillsReferencePopup(userid):
     
     @PARAM userid - the user to send the popup to
     """
-    if popuplib.isqueued("sourcerpg_skillsinfo_user%s" % userid, userid) is not None:
+    if popuplib.isqueued("sourcerpg_skillsinfo_user%s" % userid, userid):
         return
     skillsPopup = popuplib.easymenu('sourcerpg_skillsinfo_user%s' % userid, '_popup_choice', buildSkillInfo)
     skillsPopup.settitle("=== %s Skills info ===" % prefix)
@@ -2705,7 +2705,7 @@ def buildSkillInfo(userid, choice, popupid):
     @choice - the name of the skill
     @popupid - the name of the popup we just executed.
     """
-    if popuplib.isqueued("sourcerpg_skilldescription_user%s" % userid, userid) is not None:
+    if popuplib.isqueued("sourcerpg_skilldescription_user%s" % userid, userid):
         return
     skill = skills[choice]
     info  = skill.info
