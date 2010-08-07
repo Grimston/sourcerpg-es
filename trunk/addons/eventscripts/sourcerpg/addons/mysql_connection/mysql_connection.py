@@ -70,7 +70,10 @@ class MySQLDatabaseManager(sourcerpg.SQLiteManager):
             self.execute("CREATE DATABASE IF NOT EXISTS ?", self.NonStringArg(str(mysqlDatabase)))
         except:
             pass
-        self.execute("USE ?", self.NonStringArg(str(mysqlDatabase)))
+        try:
+            self.execute("USE ?", self.NonStringArg(str(mysqlDatabase)))
+        except:
+            raise ValueError("Cannot connect to database %s and do not have permission to create either" % mysqlDatabase)
 
         """ Create the table to hold the players global stats """
         self.execute("""\

@@ -104,26 +104,34 @@ _map_error(IntegrityError, ER.DUP_ENTRY, ER.NO_REFERENCED_ROW,
 _map_error(NotSupportedError, ER.WARNING_NOT_COMPLETE_ROLLBACK,
            ER.NOT_SUPPORTED_YET, ER.FEATURE_DISABLED, ER.UNKNOWN_STORAGE_ENGINE)
 
+for constantVariableName, errno in ER.__dict__.iteritems():
+    if constantVariableName.startswith("__"):
+        continue
+    if errno not in error_map:
+        error_map[errno] = MySQLError
+
 del StandardError, _map_error, ER
 
     
 def _get_error_info(data):
-    errno = struct.unpack('h', data[5:7])[0]
-    sqlstate = struct.unpack('5s', data[8:8+5])[0]
-    start = 13
-    end = data.find('\0', start)
-    errorvalue = data[start:end]
+    errno = struct.unpack('h', data[1:3])[0]
+    sqlstate = struct.unpack('5s', data[4:9])[0]
+    end = data.find('\0', 9)
+    if end == -1:
+        errorvalue = data[9:]
+    else:
+        errorvalue = data[9:end]
     return (errno, sqlstate, errorvalue)
 
 def _check_mysql_exception(errinfo):
     errno, sqlstate, errorvalue = errinfo 
     errorclass = error_map.get(errno, None)
     if errorclass:
-        raise errorclass, errorvalue
+        raise errorclass("ERROR %s (%s): %s" % (errno, sqlstate, errorvalue))
     """
     TODO not found errno
     """
-    raise InternalError, ""
+    raise InternalError("No error objet could be resolved: ERROR %s (%s): %s" % (errno, sqlstate, errorvalue))
 
 def raise_mysql_exception(data):
     errinfo = _get_error_info(data)
