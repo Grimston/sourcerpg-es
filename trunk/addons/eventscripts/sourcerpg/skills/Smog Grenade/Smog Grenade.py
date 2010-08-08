@@ -113,7 +113,7 @@ class SmokeGrenadeManager(object):
                 for loopPlayer in playerlib.getPlayerList('#t,#alive' if es.getplayerteam(player) == 3 else '#ct,#alive'):
                     xx, yy, zz = loopPlayer.get('location')
                     if abs(x - xx) <= 220 and abs(y - yy) <= 220 and abs(z - zz) <= 220:
-                        es.server.queuecmd('damage %s %s 32 %s' % ( int(loopPlayer), level * int(damagePerLevel), player) )
+                        es.server.queuecmd('damage %s %s 32 %s' % ( int(loopPlayer), level * int(damagePerLevel), player))
                         es.emitsound('player', int(loopPlayer), 'player/damage%s.wav' % random.randint(1, 3), '0.7', '0.6')
             else:
                 self.removeEntity(entity)

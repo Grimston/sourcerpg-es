@@ -138,11 +138,11 @@ class HealObject(repeat.Repeat):
             level   = player[skillName]
             if level:
                 """ The user is at least level one in the medic skill """
-                distance = ( int(minDistance) + (level - 1) * float(distanceInc) )
+                distance = ( int(minDistance) + (level - 1) * float(distanceInc))
                 healing  = int(healingInc) * level
                 armor    = 0
 
-                for teamPlayer in filter(lambda x: es.getplayerteam(x) == team and not es.getplayerprop(x, 'CBasePlayer.pl.deadflag'), es.getUseridList() ):
+                for teamPlayer in filter(lambda x: es.getplayerteam(x) == team and not es.getplayerprop(x, 'CBasePlayer.pl.deadflag'), es.getUseridList()):
                     """ Loop through all the living players on their team """
                     xx, yy, zz = es.getplayerlocation(teamPlayer)
                     if ( (x - xx) ** 2 + (y - yy) ** 2 + (z - zz) ** 2 ) ** 0.5 <= distance:

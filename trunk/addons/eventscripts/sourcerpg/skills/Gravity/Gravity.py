@@ -75,7 +75,7 @@ class GravityManager(object):
         if self.__contains__(userid):
             self.removePlayer(userid)
             
-        self.gravityList[userid] = GravityObject(userid, float(amount) )
+        self.gravityList[userid] = GravityObject(userid, float(amount))
         self.gravityList[userid].update()
         self.gravityList[userid].reset()
        

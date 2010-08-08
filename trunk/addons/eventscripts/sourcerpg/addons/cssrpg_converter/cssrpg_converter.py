@@ -137,8 +137,8 @@ def writeEntries():
             if steamid in sourcerpg.database:
                 """ If the player exists, remove them from the database """
                 UserID = sourcerpg.database.getUserIdFromSteamId(steamid) 
-                sourcerpg.database.cursor.execute("DELETE FROM Player WHERE UserID=?", (UserID,) )
-                sourcerpg.database.cursor.execute("DELETE FROM Skill WHERE UserID=?", (UserID,) )
+                sourcerpg.database.cursor.execute("DELETE FROM Player WHERE UserID=?", (UserID,))
+                sourcerpg.database.cursor.execute("DELETE FROM Skill WHERE UserID=?", (UserID,))
 
             """ Add the player instance into the database with default values """
             sourcerpg.database.cursor.execute("""INSERT INTO Player
@@ -146,7 +146,7 @@ def writeEntries():
                                     VALUES (?,?,?,?,?,?,?)""",
                                     (steamid, int(sourcerpg.popupStatus), values['credits'],
                                     values['name'].replace("'", "''"), values['level'],
-                                    values['xp'], now) )
+                                    values['xp'], now))
             userid = sourcerpg.database.cursor.lastrowid
             for skillName, level in values['skills'].iteritems():
                 """ Loop through all the converted skills and attributes """
@@ -155,7 +155,7 @@ def writeEntries():
                     continue
                 """ Obtain the rowid from the database and set the new skill """
                 sourcerpg.database.cursor.execute("INSERT INTO Skill (name, UserID, level) VALUES (?,?,?)",
-                                                    (skillName, userid, level) )
+                                                    (skillName, userid, level))
                             
         except OperationalError:
             """ We got an error, ignore it and continue to the next person. """
@@ -168,12 +168,12 @@ def writeEntries():
        os.mkdir(directory)
 
     """ Move the cssrpgd database to a new directory and save the main databse. """
-    move(stringPath, os.path.join(directory, "cssrpg.db") )
+    move(stringPath, os.path.join(directory, "cssrpg.db"))
     sourcerpg.database.save()
 
     """ Restart the mod then change maps to take effect """
     es.reload(sourcerpg.info.basename)
-    es.server.queuecmd('changelevel %s' % es.ServerVar('eventscripts_currentmap') )
+    es.server.queuecmd('changelevel %s' % es.ServerVar('eventscripts_currentmap'))
 
 """ Start the process to write the entries """
 writeEntries()

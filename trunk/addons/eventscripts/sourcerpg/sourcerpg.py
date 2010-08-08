@@ -194,7 +194,7 @@ es.server.cmd("exec sourcerpg/config.cfg")
 es.ServerVar('sourcerpg', info.version, 'SourceRPG Version - Made by Freddukes').makepublic()
 turboMode.makepublic()
 
-currentTurboMode = bool( int(turboMode) )
+currentTurboMode = bool( int(turboMode))
 
 """ Exceptions """
 class DatabaseError(Exception):
@@ -334,7 +334,7 @@ CREATE TABLE IF NOT EXISTS Skill (
         @PARAM steamid - the string value of a players steamid
         @PARAM name - the string value of a players name
         """
-        self.execute("INSERT INTO Player (steamid, popup, credits, name, lastconnected) VALUES (?,?,?,?,?)", steamid, int(popupStatus), int(startCredits), name, int(time.time()) )
+        self.execute("INSERT INTO Player (steamid, popup, credits, name, lastconnected) VALUES (?,?,?,?,?)", steamid, int(popupStatus), int(startCredits), name, int(time.time()))
         return self.cursor.lastrowid
             
     def getUserIdFromSteamId(self, steamId):
@@ -387,7 +387,7 @@ CREATE TABLE IF NOT EXISTS Skill (
         if not isinstance(userid, int):
             userid = self.getUserIdFromSteamId(userid)
         self.execute("SELECT level FROM Skill WHERE UserID=? AND name=?", userid, skillName)
-        return bool( self.fetchone() )
+        return bool( self.fetchone())
         
     def getPlayerStat(self, userid, statType):
         """
@@ -401,7 +401,7 @@ CREATE TABLE IF NOT EXISTS Skill (
             userid = self.getUserIdFromSteamId(userid)
         statType = str(statType).replace("'", "''")
         if hasattr(statType, "__len__"):
-            query = "SELECT " + ",".join( map( str, statType) ) + " FROM Player WHERE UserID=?"
+            query = "SELECT " + ",".join( map( str, statType)) + " FROM Player WHERE UserID=?"
         else:
             query = "SELECT " + str( statType ) + " FROM Player WHERE UserID=?"
         self.execute(query, userid)
@@ -486,7 +486,7 @@ CREATE TABLE IF NOT EXISTS Skill (
         
         """ Test if the value passed in options is of several values """
         if hasattr(options, "__len__"):
-            query = "SELECT " + ",".join( map(lambda x: str(x).replace("'", "''"), options) ) + " FROM " + table \
+            query = "SELECT " + ",".join( map(lambda x: str(x).replace("'", "''"), options)) + " FROM " + table \
                     + " WHERE " + primaryKeyName + "='" + primaryKeyValue + "'"
         else:
             query = "SELECT " + str(options).replace("'", "''") + " FROM " + table + \
@@ -1262,7 +1262,7 @@ class CommandsDatabase(object):
         """ If turbo mode is on the multiply the experience gained """
         if currentTurboMode:
             debug.write("Turbo mode is on, multiply experience gain", 2)
-            amount = int( amount * float(turboXpMultiplier) )
+            amount = int( amount * float(turboXpMultiplier))
             
         oldXp = self.player['xp']
         currentXp  = amount + oldXp
@@ -1318,7 +1318,7 @@ class CommandsDatabase(object):
         
         """ If turbo mode is on multipliy the credits received """
         if currentTurboMode:
-            self.player['credits'] += int( amount * int(creditsReceived) * float(turboCreditMultiplier) )
+            self.player['credits'] += int( amount * int(creditsReceived) * float(turboCreditMultiplier))
         else:
             self.player['credits'] += amount * int(creditsReceived)
         
@@ -1392,7 +1392,7 @@ class CommandsDatabase(object):
                 tokens['xp']     = self.player['xp']
                 tokens['nextxp'] = (self.player['level'] - 1) * int(xpIncrement) + int(startXp)
                 
-                for userid in filter( lambda x: not es.isbot(x), es.getUseridList() ):
+                for userid in filter( lambda x: not es.isbot(x), es.getUseridList()):
                     tell(userid, 'level gained global', tokens)
                 
             if str(levelupSound):
@@ -1429,7 +1429,7 @@ class CommandsDatabase(object):
             self.player[skill.name] = 0
 
         """ Slay the player """
-        es.server.queuecmd("damage %s %s" % (self.userid, es.getplayerprop(self.userid, "CBasePlayer.m_iHealth") ) )
+        es.server.queuecmd("damage %s %s" % (self.userid, es.getplayerprop(self.userid, "CBasePlayer.m_iHealth")))
         
         """ Notify the user """
         tell(self.userid, 'info deleted')
@@ -1515,7 +1515,7 @@ class ConfigurationObject(cfglib.AddonCFG):
         @PARAM information - the information about the skill, accepts multiline 
         """
         gamethread.delayed(0, gamethread.delayed, (0, self.setSkillInfo, (name, information))) # delay by 2 ticks to allow skills to register
-        header = "\n%s\n%s\n\n" % ('*' * 50, name.center(50) )
+        header = "\n%s\n%s\n\n" % ('*' * 50, name.center(50))
         footer = "\n%s" % ("*" * 50)
         information = information.strip() # strip whitespace at begggining and end of lines
         information = (header + information + footer).replace('\n', '\n// ')
@@ -1579,7 +1579,7 @@ class CommandManager(object):
         @PARAM experiencePerDamage - the amount of experience per damage gained
         @PARAM experiencePerKill - the amount of experience gained for killing with this weapon
         """
-        weaponXp[weapon.replace('weapon_', '').lower()] = ( int( experiencePerDamage ), int( experiencePerKill) )
+        weaponXp[weapon.replace('weapon_', '').lower()] = ( int( experiencePerDamage ), int( experiencePerKill))
         
     def addxp(self, userid, amount, *reason):
         """
@@ -1589,7 +1589,7 @@ class CommandManager(object):
         @PARAM amount - anount of experience to add
         @PARAM OPTIONAL reason - the reason for the experience
         """
-        players[userid].addXp( int(amount), " ".join(reason) )
+        players[userid].addXp( int(amount), " ".join(reason))
             
     def addlevel(self, userid, amount):
         """
@@ -1606,7 +1606,7 @@ class CommandManager(object):
         
         @PARAM skillName - the name of the skill they wish to load
         """
-        es.load("%s/skills/%s" % (info.basename, skillName) )
+        es.load("%s/skills/%s" % (info.basename, skillName))
         
     def unload(self, skillName):
         """
@@ -1614,22 +1614,22 @@ class CommandManager(object):
         
         @PARAM skillName - the name of the skill to unload
         """
-        es.unload("%s/skills/%s" % (info.basename, skillName) )
+        es.unload("%s/skills/%s" % (info.basename, skillName))
         
     def unloadallskills(self):
         """
         This method unloads all current loaded skills
         """
         for skill in skills.skills.copy():
-            es.unload("%s/skills/%s" % (info.basename, skill) )
+            es.unload("%s/skills/%s" % (info.basename, skill))
         skills.clearList()
     
     def loadallskills(self):
         """
         This metod loads all skills within the skills folder
         """
-        for skill in os.listdir( os.path.join( es.getAddonPath( info.basename ), "skills" ) ):
-            es.load("%s/skills/%s" % (info.basename, skill) )
+        for skill in os.listdir( os.path.join( es.getAddonPath( info.basename ), "skills" )):
+            es.load("%s/skills/%s" % (info.basename, skill))
             
     def loadaddon(self, addonName):
         """
@@ -1638,7 +1638,7 @@ class CommandManager(object):
         
         @PARAM addonName - the name of the addon to load
         """
-        es.load("%s/addons/%s" % (info.basename, addonName) )
+        es.load("%s/addons/%s" % (info.basename, addonName))
         
     def unloadaddon(self, addonName):
         """
@@ -1647,7 +1647,7 @@ class CommandManager(object):
         
         @PARAM addonName - the name of the addon to unload
         """
-        es.unload("%s/addons/%s" % (info.basename, addonName) )
+        es.unload("%s/addons/%s" % (info.basename, addonName))
         
 class SayCommandsManager(object):
     """
@@ -2011,7 +2011,7 @@ or recovering them again!""")
             
         es.server.queuecmd('mp_restartgame 1')
 
-    if str( es.ServerVar('eventscripts_currentmap') ):
+    if str( es.ServerVar('eventscripts_currentmap')):
         es_map_start({})
 
     """ If we want to save by intervals then create a repeat to save the database """
@@ -2090,7 +2090,7 @@ def es_map_start(event_var):
             name, level, xp, credits = values
             if len(name) > 16:
                 name = name[0:14]+'...'
-            rpgTop5Popup.addline("->%s. %s - Lvl: %s XP: %s Credits: %s" % (index + 1, name, level, xp, credits ) )
+            rpgTop5Popup.addline("->%s. %s - Lvl: %s XP: %s Credits: %s" % (index + 1, name, level, xp, credits ))
         rpgTop5Popup.addline("-" * 30)
         if len(results) > 5:
             rpgTop5Popup.addline("-> 9. Next")
@@ -2104,7 +2104,7 @@ def es_map_start(event_var):
                 name, level, xp, credits = values
                 if len(name) > 16:
                     name = name[0:14]+'...'
-                rpgTop10Popup.addline("->%s. %s - Lvl: %s XP: %s Credits: %s" % (index + 6, name, level, xp, credits ) )
+                rpgTop10Popup.addline("->%s. %s - Lvl: %s XP: %s Credits: %s" % (index + 6, name, level, xp, credits ))
 
             rpgTop10Popup.addline("-" * 30)
             rpgTop10Popup.addline("->8. Back")
@@ -2120,7 +2120,7 @@ def es_map_start(event_var):
     
     debug.write('[SourceRPG] Removing all inactve players!', 0, True)
     
-    database.execute("SELECT UserID FROM Player WHERE lastconnected < ?", int(currentTime) )
+    database.execute("SELECT UserID FROM Player WHERE lastconnected < ?", int(currentTime))
     for userid in database.fetchall():
         database.execute("DELETE FROM Player WHERE UserID=?", userid )
         database.execute("DELETE FROM Skill WHERE UserID=?", userid )
@@ -2234,7 +2234,7 @@ def server_cvar(event_var):
     debug.write("[SourceRPG] Handling server_cvar", 1)
     if event_var['cvarname'] == "srpg_turboMode":
         debug.write("Altering turbo mode", 1)
-        newValue = bool( int(event_var['cvarvalue']) )
+        newValue = bool( int(event_var['cvarvalue']))
         debug.write("New value of turbo mode: %s" % newValue, 1)
         if newValue <> currentTurboMode:
             debug.write("New Value differs to the old value", 1)
@@ -2295,7 +2295,7 @@ def player_death(event_var):
                 if weapon in weaponXp:
                     if weaponXp[weapon][1]:
                         useN = "n" if weapon[0] in ("a", "e", "i", "o", "u") else ""
-                        player.addXp( weaponXp[weapon][1], "killing a player with a%s %s" % ( useN, weapon ) )
+                        player.addXp( weaponXp[weapon][1], "killing a player with a%s %s" % ( useN, weapon ))
     debug.write("Resetting player to default attributes", 1)
     players[userid].resetPlayerDefaultAttributes()
     debug.write("[SourceRPG] player_death handled", 1)
@@ -2411,7 +2411,7 @@ def isFairForTeam(teamNumber):
     if not 1 < int(teamNumber) < 4:
         debug.write("Incorrect teamnumber passed, teams are not fair", 2)
         return False 
-    return bool( es.getlivingplayercount( 5 - int( teamNumber ) ) )
+    return bool( es.getlivingplayercount( 5 - int( teamNumber )))
     
 def canReceiveExperience(userid, attacker):
     """
@@ -2430,13 +2430,13 @@ def canReceiveExperience(userid, attacker):
         debug.write("Attacker is a bot", 2)
         if es.isbot(attacker):
             debug.write("Victim is a bot", 2)
-            return bool( int( botsGetXpVsBots ) )
+            return bool( int( botsGetXpVsBots ))
         else:
             debug.write("Victim is a human", 2)
-            return bool( int( botsGetXpVsHumans ) )
+            return bool( int( botsGetXpVsHumans ))
     else:
         debug.write("Victim is a bot, attacker is a human", 2)
-        return bool( int( humansGetXpVsBots ) )
+        return bool( int( humansGetXpVsBots ))
     
 def getSteamid(value):
     """
@@ -2448,7 +2448,7 @@ def getSteamid(value):
     @RETURN string - the actual steamid of the input. 
     """
     value = str(value)
-    if value.startswith( ("STEAM_", "BOT_") ):
+    if value.startswith( ("STEAM_", "BOT_")):
         return value
     userid = es.getuserid(value)
     if userid:
@@ -2506,7 +2506,7 @@ def buildSkillMenu(userid):
             skillMenu.addoption(None, str(skill.name) + " [MAXED]" ,False)
         else:
             cost = level * int(skill.creditIncrement) + int(skill.startCredit)
-            skillMenu.addoption(skill.name, skill.name + " => %s [COST %s]" % (level + 1, cost), bool(player['credits'] >= cost) )
+            skillMenu.addoption(skill.name, skill.name + " => %s [COST %s]" % (level + 1, cost), bool(player['credits'] >= cost))
     skillMenu.c_exitformat = "0. Close"
     debug.write("popup built", 2)
     skillMenu.send(userid)
@@ -2581,7 +2581,7 @@ def buildSellMenu(userid):
     for skill in skills:
         level = player[str(skill.name)]
         if level > 0:
-            sellMenu.addoption(skill.name, skill.name + " => %s [GAIN %s]" % (level - 1, int( ( (level - 1) * int(skill.creditIncrement) + int(skill.startCredit) ) * float(sellPercentage) / 100.) ) )
+            sellMenu.addoption(skill.name, skill.name + " => %s [GAIN %s]" % (level - 1, int( ( (level - 1) * int(skill.creditIncrement) + int(skill.startCredit)) * float(sellPercentage) / 100.)))
         else:
             sellMenu.addoption(None, skill.name + " [NEED LEVEL]", False)
     sellMenu.c_exitformat = "0. Close"
@@ -2601,7 +2601,7 @@ def checkSkillForSelling(userid, choice, popupid, resend=True, gainCredits = Tru
     player = players[userid]
     skill  = skills[choice]
     level  = player[skill.name]
-    creditsGained = int( ( (level - 1) * int(skill.creditIncrement) + int(skill.startCredit) ) * float(sellPercentage) / 100.)
+    creditsGained = int( ( (level - 1) * int(skill.creditIncrement) + int(skill.startCredit)) * float(sellPercentage) / 100.)
     if creditsGained > 0 or gainCredits is not True:
         """ Only do the purchase if credits are obtained """
         player[skill.name] -= 1
@@ -2644,14 +2644,14 @@ def buildStatsMenu(userid, playerToTest):
     statsmenu.addline("=== %s Stats ===" % prefix )
     statsmenu.addline("-" * 30)
     statsmenu.addline("Name: %s" % player['name'])
-    statsmenu.addline("Last Disconnected: %s" % (time.strftime("%a %d %b %Y, %H:%M:%S", time.localtime( float( player['lastconnected'] ) ) ) ) )
+    statsmenu.addline("Last Disconnected: %s" % (time.strftime("%a %d %b %Y, %H:%M:%S", time.localtime( float( player['lastconnected'] )))))
     statsmenu.addline("Level: %s" % player['level'])
-    statsmenu.addline("XP: %s/%s" % (player['xp'], player['level'] * int(xpIncrement) + int(startXp) ) )
-    statsmenu.addline("Rank: %s/%s" % ( ranks.getRank( player['steamid'] ), len( ranks ) ) )
+    statsmenu.addline("XP: %s/%s" % (player['xp'], player['level'] * int(xpIncrement) + int(startXp)))
+    statsmenu.addline("Rank: %s/%s" % ( ranks.getRank( player['steamid'] ), len( ranks )))
     statsmenu.addline("-" * 30)
     statsmenu.addline("->9. See skills")
     statsmenu.addline("0. Close")
-    statsmenu.submenu(9, buildSkillsMenuForPlayer(userid, playerToTest, False) )
+    statsmenu.submenu(9, buildSkillsMenuForPlayer(userid, playerToTest, False))
     statsmenu.send(userid)
 
 def buildSkillsMenuForPlayer(userid, playerToTest, send = True):
@@ -2755,7 +2755,7 @@ def tell(userid, textIdent, tokens = {} ):
     @PARAM textIdent - the identification of the text from the ConfigObj object (langlib)
     @OPTIONAL PARAM tokens - a dictionary of variables you'd like to insert into the string
     """
-    message = "#green%s #default- #lightgreen%s" % ( str(prefix), text(textIdent, tokens, playerlib.getPlayer(userid).get("lang") ) ) 
+    message = "#green%s #default- #lightgreen%s" % ( str(prefix), text(textIdent, tokens, playerlib.getPlayer(userid).get("lang"))) 
     es.tell(userid, '#multi', message)
     
 def fireEvent(eventName, values):

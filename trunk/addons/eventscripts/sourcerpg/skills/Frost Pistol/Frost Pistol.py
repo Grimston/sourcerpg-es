@@ -49,7 +49,7 @@ def player_hurt(event_var):
             """ The player has at least level 1 in this skill """
             if event_var['es_userteam'] <> event_var['es_attackerteam']:
                 """ It was not a team kill """
-                if event_var['weapon'] in map(lambda x: x.split('_')[-1], weaponlib.getWeaponNameList('#secondary') ):
+                if event_var['weapon'] in map(lambda x: x.split('_')[-1], weaponlib.getWeaponNameList('#secondary')):
                     victim = sourcerpg.players[userid]
                     speed  = victim['maxSpeed']
                     if not victim['slowed']:
@@ -62,7 +62,7 @@ def player_hurt(event_var):
                             victim['maxSpeed'] = speed
                             playerlibInstance.speed = speed
                             playerlibInstance.setColor(0, 0, 255)
-                            gamethread.delayedname(float(freezeTime) * level, 'sourcerpg_slow_user%s' % userid, speedUp, (userid, speed * 2.0) )
+                            gamethread.delayedname(float(freezeTime) * level, 'sourcerpg_slow_user%s' % userid, speedUp, (userid, speed * 2.0))
                     else:
                         gamethread.cancelDelayed("sourcerpg_slow_user%s" % userid)
                         gamethread.delayedname(float(freezeTime) * level, 'sourcerpg_slow_user%s' % userid, speedUp, (userid, speed * 2.0))

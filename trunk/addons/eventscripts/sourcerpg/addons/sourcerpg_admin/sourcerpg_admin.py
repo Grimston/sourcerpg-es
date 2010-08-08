@@ -226,7 +226,7 @@ class PopupCallbacks(object):
         """
         skillPopup = popuplib.easymenu("sourcerpg_skillmenu", "_popup_choice", self.toggleSkill)
         skillPopup.settitle("=== %s Toggle Skills ===" % sourcerpg.prefix)
-        for skill in filter(lambda x: x.find(".") == -1, os.listdir( os.path.join(es.getAddonPath(sourcerpg.info.basename), 'skills') ) ):
+        for skill in filter(lambda x: x.find(".") == -1, os.listdir( os.path.join(es.getAddonPath(sourcerpg.info.basename), 'skills'))):
             status = "[ENABLED]" if skill in sourcerpg.skills else "[DISABLED]"
             skillPopup.addoption(skill, skill + " " + status)
         skillPopup.submenu(10, 'sourcerpg_admin')
@@ -246,10 +246,10 @@ class PopupCallbacks(object):
         tokens['skill'] = choice
         if choice in sourcerpg.skills:
             tokens['status'] = "disabled"
-            es.unload("%s/skills/%s" % (sourcerpg.info.basename, choice) )
+            es.unload("%s/skills/%s" % (sourcerpg.info.basename, choice))
         else:
             tokens['status'] = "enabled"
-            es.load("%s/skills/%s" % (sourcerpg.info.basename, choice) )
+            es.load("%s/skills/%s" % (sourcerpg.info.basename, choice))
         gamethread.delayed(0, self.buildSkills, userid)
         tell(userid, 'skill toggled', tokens)
     
@@ -263,7 +263,7 @@ class PopupCallbacks(object):
         """
         addonPopup = popuplib.easymenu("sourcerpg_addonmenu", "_popup_choice", self.toggleAddon)
         addonPopup.settitle("=== %s Toggle Skills ===" % sourcerpg.prefix)
-        for addon in filter(lambda x: x.find(".") == -1, os.listdir( os.path.join(es.getAddonPath(sourcerpg.info.basename), 'addons') ) ):
+        for addon in filter(lambda x: x.find(".") == -1, os.listdir( os.path.join(es.getAddonPath(sourcerpg.info.basename), 'addons'))):
             status = "[ENABLED]" if addon in sourcerpg.addons else "[DISABLED]"
             addonPopup.addoption(addon, addon + " " + status)
         addonPopup.submenu(10, 'sourcerpg_admin')
@@ -283,10 +283,10 @@ class PopupCallbacks(object):
         tokens['addon'] = choice
         if choice in sourcerpg.addons:
             tokens['status'] = "disabled"
-            es.unload("%s/addons/%s" % (sourcerpg.info.basename, choice) )
+            es.unload("%s/addons/%s" % (sourcerpg.info.basename, choice))
         else:
             tokens['status'] = "enabled"
-            es.load("%s/addons/%s" % (sourcerpg.info.basename, choice) )
+            es.load("%s/addons/%s" % (sourcerpg.info.basename, choice))
         gamethread.delayed(0, self.buildAddons, userid)
         tell(userid, 'addon toggled', tokens)
         
@@ -303,11 +303,11 @@ class PopupCallbacks(object):
         choice  = choice[choice.lower().find("steam"):]
         details = self.getDetails(choice)
         playerMenu = popuplib.create("sourcerpg_player%s" % choice)
-        playerMenu.addline("=== %s Admin (%s) ===" % (sourcerpg.prefix, details['name']) )
+        playerMenu.addline("=== %s Admin (%s) ===" % (sourcerpg.prefix, details['name']))
         playerMenu.addline("-" * 30)
         playerMenu.addline("Status: %s" % {True: "Online", False: "Offline"}[self.isOnline(choice)])
         playerMenu.addline("Level: %s" % details['level'])
-        playerMenu.addline("XP: %s/%s" % (details['xp'], details['level'] * int(sourcerpg.xpIncrement) + int(sourcerpg.startXp) ) )
+        playerMenu.addline("XP: %s/%s" % (details['xp'], details['level'] * int(sourcerpg.xpIncrement) + int(sourcerpg.startXp)))
         playerMenu.addline(" ")
         playerMenu.addline("->1. Give Experience")
         playerMenu.addline("->2. Give Levels")
@@ -724,7 +724,7 @@ class PopupCallbacks(object):
         @PARAM steamid - the steamid of the player to test
         @RETURN boolean - whether or not the player is currently online
         """
-        return bool( es.getuserid( steamid ) )
+        return bool( es.getuserid( steamid ))
 
 """ Create the singleton instances """
 popup  = PopupCallbacks()
@@ -816,4 +816,4 @@ def tell(userid, textIdentifier, tokens = {}):
         lang    = playerlib.getPlayer(userid).get("lang")
         prefix  = "#green%s #default- #lightgreen" % sourcerpg.prefix
         message = text(textIdentifier, tokens, lang)
-        es.tell(userid, '#multi', "%s%s" % (prefix, message ) )
+        es.tell(userid, '#multi', "%s%s" % (prefix, message ))

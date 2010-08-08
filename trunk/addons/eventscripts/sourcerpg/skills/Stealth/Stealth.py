@@ -50,7 +50,7 @@ def player_spawn(event_var):
             if level:
                 """ If the level is greater than 0 """
                 gamethread.delayed(0, getBaseStealth, userid)
-                gamethread.delayed(0, gamethread.delayed, (0, setStealth, userid) )
+                gamethread.delayed(0, gamethread.delayed, (0, setStealth, userid))
             
 def player_disconnect(event_var):
     """

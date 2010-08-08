@@ -48,7 +48,7 @@ def flashbang_detonate(event_var):
         shakeTime  = level * 2
         shakePower = level * 100
         otherTeam  = 5 - int(event_var['es_userteam']) 
-        for user in filter(lambda x: es.getplayerteam(x) == otherTeam, es.getUseridList() ):
+        for user in filter(lambda x: es.getplayerteam(x) == otherTeam, es.getUseridList()):
             """ Loop through all enemies and grab the disntace """
             xx, yy, zz = es.getplayerlocation(user)
             if abs(x - xx) <= distance and abs(y - yy) <= distance and abs(z - zz) <= distance:

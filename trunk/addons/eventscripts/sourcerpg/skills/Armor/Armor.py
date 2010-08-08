@@ -49,7 +49,7 @@ def player_spawn(event_var):
                 defaults in sourcerpg
                 """
                 gamethread.delayed(0, getBaseArmor, userid)
-                gamethread.delayed(0, gamethread.delayed, (0, setArmor, userid) )
+                gamethread.delayed(0, gamethread.delayed, (0, setArmor, userid))
         
 def player_disconnect(event_var):
     """

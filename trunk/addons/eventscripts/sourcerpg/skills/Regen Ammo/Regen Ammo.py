@@ -212,7 +212,7 @@ def item_pickup(event_var):
         if player[skillName]:
             ammoPlayer = ammo[userid]
             if not ammoPlayer.isRunning():
-                ammoPlayer.start( player[skillName], float(regenDelay) )
+                ammoPlayer.start( player[skillName], float(regenDelay))
         
 def weapon_reload(event_var):
     """
@@ -246,7 +246,7 @@ def sourcerpg_skillupgrade(event_var):
     if event_var['skill'] == skillName:
         userid = event_var['userid']
         ammo[userid].stop()
-        ammo[userid].start( int(event_var['level']), float(regenDelay) )
+        ammo[userid].start( int(event_var['level']), float(regenDelay))
         
 def sourcerpg_skilldowngrade(event_var):
     """
@@ -261,4 +261,4 @@ def sourcerpg_skilldowngrade(event_var):
         level  = int(event_var['level'])
         ammo[userid].stop()
         if level:
-            ammo[userid].start( level, float(regenDelay) )
+            ammo[userid].start( level, float(regenDelay))

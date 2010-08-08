@@ -81,7 +81,7 @@ def player_hurt(event_var):
                             if random.randint(1, 100) <= float(clipRefreshPct) * level:
                                 playerlibInstance.clip[currentWeapon.name] = currentWeapon.clip
                     
-                    gamethread.delayedname( float(length), 'sourcerpg_adrenaline_user%s' % userid, reset, (userid, speed - amount) )
+                    gamethread.delayedname( float(length), 'sourcerpg_adrenaline_user%s' % userid, reset, (userid, speed - amount))
             
 def player_death(event_var):
     """

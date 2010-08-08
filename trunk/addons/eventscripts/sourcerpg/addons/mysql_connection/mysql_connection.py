@@ -115,7 +115,7 @@ CREATE TABLE IF NOT EXISTS Skill (
         for player in players:
             try:
                 query = "SELECT name, level FROM Skill WHERE UserID=?"
-                tempDB.cursor.execute(query, (player[0],) )
+                tempDB.cursor.execute(query, (player[0],))
                 skills = tempDB.cursor.fetchall()
                 sourcerpg.database.cursor.execute(uidinsert, tuple(player[1:]))
                 uid = sourcerpg.database.cursor.lastrowid

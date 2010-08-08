@@ -59,7 +59,7 @@ def player_hurt(event_var):
                     damage = int(event_var['damage'])
                 elif event_var['dmg_health'].isdigit():
                     damage = int(event_var['dmg_health'])
-                if event_var['weapon'] in map(lambda x: x.split('_')[-1], weaponlib.getWeaponNameList("#melee") ):
+                if event_var['weapon'] in map(lambda x: x.split('_')[-1], weaponlib.getWeaponNameList("#melee")):
                     if damage > 30:
                         """ The attack was a hard hit from one of the weapons """
                         if userid not in frozen:

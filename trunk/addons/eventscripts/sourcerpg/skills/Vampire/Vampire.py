@@ -44,9 +44,9 @@ def player_hurt(event_var):
         if level:
             level = level * float(percentage) / 100.0
             if event_var['dmg_health']:
-                amountToHeal = int(level * int(event_var['dmg_health']) )
+                amountToHeal = int(level * int(event_var['dmg_health']))
             elif event_var['damage']:
-                amountToHeal = int(level * int(event_var['damage']) )
+                amountToHeal = int(level * int(event_var['damage']))
             else:
                 raise ValueError, "This game does not support vampire"
             if amountToHeal:

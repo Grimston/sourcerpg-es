@@ -236,7 +236,7 @@ def player_hurt(event_var):
         level = sourcerpg.players[userid][skillName]
         if level:
             if not regen[userid].isRunning():
-                regen[userid].startRegen(level, float(regenDelay) )
+                regen[userid].startRegen(level, float(regenDelay))
             
 def sourcerpg_skillupgrade(event_var):
     """
@@ -250,7 +250,7 @@ def sourcerpg_skillupgrade(event_var):
         userid = event_var['userid']
         if not es.getplayerprop(userid, 'CBasePlayer.pl.deadflag'):
             regen[userid].stopRegen()
-            regen[userid].startRegen( int(event_var['level']), float(regenDelay) )
+            regen[userid].startRegen( int(event_var['level']), float(regenDelay))
         
 def sourcerpg_skilldowngrade(event_var):
     """
@@ -265,4 +265,4 @@ def sourcerpg_skilldowngrade(event_var):
         level  = int(event_var['level'])
         regen[userid].stopRegen()
         if level and not es.getplayerprop(userid, 'CBasePlayer.pl.deadflag'):
-            regen[userid].startRegen( level, float(regenDelay) )
+            regen[userid].startRegen( level, float(regenDelay))

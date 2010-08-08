@@ -95,7 +95,7 @@ def player_spawn(event_var):
                                 gamethread.delayed(currentDelay, safeRemove, index)
                                 currentDelay += 0.1
                                 break
-                        gamethread.delayed(currentDelay, giveWeapon, (userid, player["secondary"]) )
+                        gamethread.delayed(currentDelay, giveWeapon, (userid, player["secondary"]))
                         currentDelay += 0.1
 
                 if level >= 3:
