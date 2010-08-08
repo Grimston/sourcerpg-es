@@ -51,18 +51,21 @@ def player_hurt(event_var):
                 """ It was not a team kill """
                 if event_var['weapon'] in map(lambda x: x.split('_')[-1], weaponlib.getWeaponNameList('#secondary') ):
                     victim = sourcerpg.players[userid]
+                    speed  = victim['maxSpeed']
                     if not victim['slowed']:
                         """ If they're frozen, there's no point (i,e Ice Stab) """
                         playerlibInstance = playerlib.getPlayer(userid)
                         if not playerlibInstance.getFreeze():
                             """ Ensure that they're only slowed once """
                             victim['slowed'] = True
-                            speed  = victim['maxSpeed']
                             speed /= 2.0
                             victim['maxSpeed'] = speed
                             playerlibInstance.speed = speed
                             playerlibInstance.setColor(0, 0, 255)
                             gamethread.delayedname(float(freezeTime) * level, 'sourcerpg_slow_user%s' % userid, speedUp, (userid, speed * 2.0) )
+                    else:
+                        gamethread.cancelDelayed("sourcerpg_slow_user%s" % userid)
+                        gamethread.delayedname(float(freezeTime) * level, 'sourcerpg_slow_user%s' % userid, speedUp, (userid, speed * 2.0))
                     
 def speedUp(userid, speed):
     """

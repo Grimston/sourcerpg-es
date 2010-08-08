@@ -2,6 +2,7 @@ import es
 import gamethread
 import playerlib
 import weaponlib
+import random
 
 from sourcerpg import sourcerpg
 
@@ -15,10 +16,12 @@ config.addInfo(skillName, """This skill gives a player a temporary boost when th
 for a certain length of time.""")
 
 """ Assign all the server variables """
-maxLevel        = config.cvar("srpg_adrenalineMax",              10, "The maximum level of the regen skill")
-creditStart     = config.cvar("srpg_adrenalineCreditsStart",      5, "The starting amount of credits for this skill")
-creditIncrement = config.cvar("srpg_adrenalineCreditsIncrement", 10, "How much the credits increment after the first level")
-length          = config.cvar("srpg_adrenalineLength",          2.0, "The time (in seconds) that the effect lasts for")
+maxLevel        = config.cvar("srpg_adrenalineMax",               10, "The maximum level of the regen skill")
+creditStart     = config.cvar("srpg_adrenalineCreditsStart",       5, "The starting amount of credits for this skill")
+creditIncrement = config.cvar("srpg_adrenalineCreditsIncrement",  10, "How much the credits increment after the first level")
+length          = config.cvar("srpg_adrenalineLength",           2.0, "The time (in seconds) that the effect lasts for")
+refreshAmmo     = config.cvar("srpg_adrenalineRefreshClip",        0, "Enable clip refresh when damaged, 1=enable, 0=disabled")
+clipRefreshPct  = config.cvar("srpg_adrenalineRefreshClipPercent", 5, "The percentage of the person's clip refreshing when hit multiplied by their adrenaline level")
 
 def load():
     """ 
@@ -71,6 +74,13 @@ def player_hurt(event_var):
                     """ Set the speed and the delay """
                     playerlibInstance = playerlib.getPlayer(userid)
                     playerlibInstance.speed = speed
+                    
+                    if int(refreshAmmo):
+                        currentWeapon = weaponlib.getWeapon(playerlibInstance.weapon)
+                        if currentWeapon is not None:
+                            if random.randint(1, 100) <= float(clipRefreshPct) * level:
+                                playerlibInstance.clip[currentWeapon.name] = currentWeapon.clip
+                    
                     gamethread.delayedname( float(length), 'sourcerpg_adrenaline_user%s' % userid, reset, (userid, speed - amount) )
             
 def player_death(event_var):
