@@ -1,4 +1,4 @@
-# SourceRPG release 2.0 by Steven Hartin  
+# SourceRPG release 2.0 by Steven Hartin
 # ./addons/eventscripts/sourcerpg/sourcerpg.py
 
 # >>> To configure this addon please see config.cfg <<<
