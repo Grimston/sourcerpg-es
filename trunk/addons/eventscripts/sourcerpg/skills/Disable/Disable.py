@@ -47,4 +47,4 @@ def player_hurt(event_var):
                 """ The attacker is at least level 1 in the drop skill """
                 if random.randint(1, 100) <= level * float(percentage):
                     """ We have the drop percentage, drop it """
-                    es.cexec(userid, 'drop')
+                    es.sexec(userid, 'drop')

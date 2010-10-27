@@ -84,8 +84,11 @@ class AdminManager(object):
             args = userid
             userid = None
         if len(args) != 2:
-            es.dbgmsg(0, "rpgaddxp <steamid> <amount>")
-            return
+            if len(args) == 6:
+                args = ("".join(args[:5]), args[5])
+            else:
+                es.dbgmsg(0, "rpgaddxp <steamid> <amount>")
+                return
         steamid, amount = args
         if not str(amount).isdigit():
             es.dbgmsg(0, "rpgaddxp <steamid> <amount>")
@@ -111,8 +114,11 @@ class AdminManager(object):
             args = userid
             userid = None
         if len(args) != 2:
-            es.dbgmsg(0, "rpgaddlevels <steamid> <amount>")
-            return
+            if len(args) == 6:
+                args = ("".join(args[:5]), args[5])
+            else:
+                es.dbgmsg(0, "rpgaddlevels <steamid> <amount>")
+                return
         steamid, amount = args
         if not str(amount).isdigit():
             es.dbgmsg(0, "rpgaddlevels <steamid> <amount>")
@@ -138,8 +144,11 @@ class AdminManager(object):
             args = userid
             userid = None
         if len(args) != 2:
-            es.dbgmsg(0, "rpgaddcredits <steamid> <amount>")
-            return
+            if len(args) == 6:
+                args = ("".join(args[:5]), args[5])
+            else:
+                es.dbgmsg(0, "rpgaddcredits <steamid> <amount>")
+                return
         steamid, amount = args
         if not str(amount).isdigit():
             es.dbgmsg(0, "rpgaddcredits <steamid> <amount>")
@@ -300,7 +309,6 @@ class PopupCallbacks(object):
         @PARAM choice - the steamid of the user the popup will represent
         @PARAM popupid - the name of the popup which was used to access this method
         """
-        choice  = choice[choice.lower().find("steam"):]
         details = self.getDetails(choice)
         playerMenu = popuplib.create("sourcerpg_player%s" % choice)
         playerMenu.addline("=== %s Admin (%s) ===" % (sourcerpg.prefix, details['name']))
@@ -584,7 +592,7 @@ class PopupCallbacks(object):
         else:
             tell(userid, 'escape')
             es.escinputbox(30, userid, '=== %s Add Xp ===' % sourcerpg.prefix, 
-                'Enter the amount' , 'rpgaddxp" "%s' % target)
+                'Enter the amount' , 'rpgaddxp %s' % target)
         
     def addLevels(self, userid, choice, popupid):
         """
@@ -624,7 +632,7 @@ class PopupCallbacks(object):
         else:
             tell(userid, 'escape')
             es.escinputbox(30, userid, '=== %s Add Xp ===' % sourcerpg.prefix,
-                'Enter the amount' , 'rpgaddlevels" "%s' % target)
+                'Enter the amount' , 'rpgaddlevels %s' % target)
         
     def addCredits(self, userid, choice, popupid):
         """
@@ -663,10 +671,10 @@ class PopupCallbacks(object):
         else:
             tell(userid, 'escape')
             es.escinputbox(30, userid, '=== %s Add Xp ===' % sourcerpg.prefix,
-                'Enter the amount' , 'rpgaddcredits" "%s' % target)
+                'Enter the amount' , 'rpgaddcredits %s' % target)
     
     @staticmethod
-    def confirmation(self, userid, choice, popupid):
+    def confirmation(userid, choice, popupid):
         """
         The admin has chosen to clear the database so we shall first kill
         all players then clear the database. To ensure that all the values reset
@@ -680,7 +688,7 @@ class PopupCallbacks(object):
             for player in es.getUseridList():
                 es.sexec(player, 'kill')
                 tell(player, 'database deleting')
-            sourcerpg.database.clear()
+            sourcerpg.database.clear(True)
             es.server.queuecmd('mp_restartround 1')
     
     @staticmethod
@@ -692,10 +700,12 @@ class PopupCallbacks(object):
         
         @RETRUN dictionary - strings containing the values of the objects
         """
+        if steamid.startswith("BOT"):
+            steamid = steamid.split("_", 1)[1]
         values = {}
         if popup.isOnline(steamid):
             """ The player is online, query PlayerObject instance """
-            userid = es.getuserid()
+            userid = es.getuserid(steamid)
             return sourcerpg.players[userid] 
         """ The player is offline, query database """
 
@@ -730,6 +740,7 @@ class PopupCallbacks(object):
 popup  = PopupCallbacks()
 admin  = AdminManager()
 addonName = "sourcerpg_admin"
+
 
 def load():
     """

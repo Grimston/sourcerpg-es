@@ -26,6 +26,8 @@ def load():
     """
     sourcerpg.skills.addSkill( skillName, 3, creditStart, creditIncrement )
     es.addons.registerClientCommandFilter(clientFilter)
+    for player in es.getUseridList():
+        player_activate({"userid":str(player)})
 
 def unload():
     """
@@ -84,7 +86,6 @@ def player_spawn(event_var):
                     while player[weaponName] > 0:
                         gamethread.delayed(currentDelay, giveWeapon, (userid, weaponName))
                         player[weaponName] -= 1
-                        currentDelay += 0.1
 
                 if level >= 2:
                     """ Player has at least level 2, give them back their secondary """
@@ -92,11 +93,9 @@ def player_spawn(event_var):
                         handle = es.getplayerhandle(userid)
                         for index in weaponlib.getIndexList({2 : "weapon_glock", 3 : "weapon_usp"}[es.getplayerteam(userid)]):
                             if es.getindexprop(index, 'CBaseEntity.m_hOwnerEntity') == handle:
-                                gamethread.delayed(currentDelay, safeRemove, index)
-                                currentDelay += 0.1
+                                safeRemove(index)
                                 break
                         gamethread.delayed(currentDelay, giveWeapon, (userid, player["secondary"]))
-                        currentDelay += 0.1
 
                 if level >= 3:
                     """ Player has at least level 3, give them back their primary """
@@ -111,19 +110,18 @@ def safeRemove(index):
     
     @pararm int index The entity ID of the object to remove
     """
-    if index in es.createentitylist():
-        es.server.queuecmd("es_xremove %s" % index)
+    if index in es.createentitylist() and index:
+        es.remove(index)
                                                            
 def giveWeapon(userid, weapon):
     """
     Gives a player a named weapon. The reason we have a custom function for
-    this is so we can alter the method. Currently SPE is the only safe way to
-    do this.
+    this is so we can alter the method.
     
     @param int userd The ID of the user
     @param str weapon The Weapon name to give to the player
     """
-    spe.giveNamedItem(userid, weapon)
+    es.give(userid, weapon)
 
 def player_death(event_var):
     """

@@ -187,14 +187,11 @@ botsGetXpVsBots   = config.cvar('srpg_botsGetXpVsBots',   1, "Do bots receive ex
 botsGetXpOnEvents = config.cvar('srpg_botsGetXpOnEvents', 1, "Do bots receive experience on events such as bomb plant and bomb defuse etc?")
 
 config.write()
-es.server.cmd("exec sourcerpg/config.cfg")
 #config.execute()
 
 # Make Public Variable
 es.ServerVar('sourcerpg', info.version, 'SourceRPG Version - Made by Freddukes').makepublic()
 turboMode.makepublic()
-
-currentTurboMode = bool( int(turboMode))
 
 """ Exceptions """
 class DatabaseError(Exception):
@@ -585,10 +582,14 @@ CREATE TABLE IF NOT EXISTS Skill (
         @PARAM saveDatabase - optional value, if True, it will commit the database
         """
         debug.write("[SourceRPG] Clearing database", 1)
+        players.clearList()
         self.execute("DROP TABLE Player")
         self.execute("DROP TABLE Skill")
         if saveDatabase:
             self.save()
+        self.__init__(self.path)
+        for player in es.getUseridList():
+            players.addPlayer(player)
         debug.write("[SourceRPG] Database cleared", 1)
         
     def close(self):
@@ -1721,7 +1722,7 @@ class SayCommandsManager(object):
         tokens['name']    = player['name']
         tokens['level']   = player['level']
         tokens['xp']      = player['xp']
-        tokens['nextxp']  = player['level'] * int(xpIncrement) + int(startXp)
+        tokens['nextxp']  = (player['level'] - 1) * int(xpIncrement) + int(startXp)
         tokens['credits'] = player['credits']
         tokens['rank']    = ranks.getRank(player['steamid'])
         tokens['total']   = len( ranks )
@@ -1853,6 +1854,11 @@ class DebugManager(object):
             fileStream.close()
 
 """ Create the singletons to hold the object of the manager classes """
+weaponXp    = {}
+commands = CommandManager()
+cmdlib.registerServerCommand("srpg", commands.mainCommand, "srpg <command> [args]")
+es.server.cmd("exec sourcerpg/config.cfg")
+currentTurboMode = bool( int(turboMode))
 DATABASE_STORAGE_METHOD = SQLiteManager
 database = None
 databasePath = os.path.join( es.getAddonPath(info.basename), "players.sqlite" )
@@ -1860,13 +1866,11 @@ debugPath    = os.path.join( es.getAddonPath(info.basename), "debuglog.txt"   )
 skills   = SkillManager()
 addons   = AddonManager()
 players  = PlayerManager()
-commands = CommandManager()
 popups   = PopupCallbacks()
 ranks    = RankManager()
 debug    = DebugManager(debugPath)
 skillConfig = ConfigurationObject(str(sourcerpgCFG.joinpath("skills.cfg")))
 sayCommands = SayCommandsManager()
-weaponXp    = {}
 
 ####################################
 ### API ENDS HERE, Program below ###
@@ -1893,8 +1897,6 @@ def load():
     debug.write('\tEventscript Tools Version: %s' % es.ServerVar('est_version'),    0, False)
     debug.write('\tEventscripts Noisy: %s' % es.ServerVar('eventscripts_noisy'),    0, False)
     debug.write('\tPopuplib version: %s' % popuplib.info.version,                   0, False) 
-    
-    cmdlib.registerServerCommand("srpg", commands.mainCommand,    "srpg <command> [args]")
     
     cmdlib.registerSayCommand("rpgmenu",    sayCommands.mainMenu,    "Opens the rpg main menu")
     cmdlib.registerSayCommand("rpgupgrade", sayCommands.upgradeMenu, "Opens the upgrade menu")
@@ -2122,6 +2124,7 @@ def es_map_start(event_var):
     
     database.execute("SELECT UserID FROM Player WHERE lastconnected < ?", int(currentTime))
     for userid in database.fetchall():
+        debug.write('[SourceRPG] Removing UserID %s' % userid, 3, False)
         database.execute("DELETE FROM Player WHERE UserID=?", userid )
         database.execute("DELETE FROM Skill WHERE UserID=?", userid )
     
@@ -2214,7 +2217,7 @@ def player_spawn(event_var):
                 tokens = {}
                 tokens['level']  = player['level']
                 tokens['xp']     = player['xp']
-                tokens['nextxp'] = player['level'] * int(xpIncrement) + int(startXp)
+                tokens['nextxp'] = (player['level'] - 1) * int(xpIncrement) + int(startXp)
                 tell(userid, 'level gained private', tokens)
                 debug.write("Player rank information sent", 1)
             if currentTurboMode and int(turboModeAnnounce):
@@ -2243,12 +2246,12 @@ def server_cvar(event_var):
                 debug.write("Closing database and creating a new memory object", 1)
                 gamethread.cancelDelayed('sourcerpg_databasesave')
                 
-                database = SQLManager(":memory:") # Calls deconstructor on the database
+                database = SQLiteManager(":memory:") # Calls deconstructor on the database
                 es.server.queuecmd('mp_restartgame 2')
             else:
                 debug.write("Closing database and opening the real database",1 )
                 """ Turbo mode was switched off """
-                database = SQLManager(databasePath)
+                database = SQLiteManager(databasePath)
                 es.server.queuecmd('mp_restartgame 2')
                 
                 """ If we need to start the loop again """
@@ -2382,7 +2385,7 @@ def hostage_follows(event_var):
         if es.isbot(event_var['userid']) and not int(botsGetXpOnEvents):
             return
         player = players[event_var['userid']]
-        player.addXp( int(hostageFollowsXp) * player['level'], 'making a hostage follow you' )
+        player.addXp( int(hostageFollowXp) * player['level'], 'making a hostage follow you' )
     debug.write("[SourceRPG] hostage_follows handled", 1)
     
 def hostage_rescued(event_var):
@@ -2546,7 +2549,7 @@ def checkSkillForUpgrading(userid, choice, popupid, resend = True, useCredits = 
         values["userid"] = ("setint", userid)
         values["level"] = ("setint", player[str(skill.name)])
         values["cost"] = ("setint", creditsRequired)
-        values["skill"] = str(skill.name)
+        values["skill"] = ("setstring", skill.name)
         gamethread.delayed(0, fireEvent, ("sourcerpg_skillupgrade", values))
         
     else:
@@ -2646,7 +2649,7 @@ def buildStatsMenu(userid, playerToTest):
     statsmenu.addline("Name: %s" % player['name'])
     statsmenu.addline("Last Disconnected: %s" % (time.strftime("%a %d %b %Y, %H:%M:%S", time.localtime( float( player['lastconnected'] )))))
     statsmenu.addline("Level: %s" % player['level'])
-    statsmenu.addline("XP: %s/%s" % (player['xp'], player['level'] * int(xpIncrement) + int(startXp)))
+    statsmenu.addline("XP: %s/%s" % (player['xp'], (player['level'] - 1) * int(xpIncrement) + int(startXp)))
     statsmenu.addline("Rank: %s/%s" % ( ranks.getRank( player['steamid'] ), len( ranks )))
     statsmenu.addline("-" * 30)
     statsmenu.addline("->9. See skills")
